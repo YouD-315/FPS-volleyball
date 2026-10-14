@@ -444,7 +444,7 @@
     <div id="hud">
         <div class="hud-top">
             <div class="score-block">
-                <span class="score-label" id="p1-label">YOU (1P)</span>
+                <span class="score-label" id="p1-label">HOST (1P)</span>
                 <span class="score-val cyan-text" id="score-p1">0</span>
             </div>
             <div class="vs-divider">VS</div>
@@ -604,7 +604,7 @@
 
 <script>
 /* ==========================================================================
-   CYBER VOLLEY FPS - ENGINE SCRIPT
+   CYBER VOLLEY FPS - ENGINE SCRIPT (P2P GUEST HIT SYNC FIXED)
    ========================================================================== */
 
 const DEFAULT_SETTINGS = {
@@ -1185,6 +1185,8 @@ document.addEventListener('mousemove', (e) => {
 
 window.addEventListener('mousedown', (e) => {
     if (e.button !== 0 || !isPlaying) return;
+    // Prevent shooting when clicking UI buttons
+    if (document.getElementById('settings-modal').style.display === 'flex') return;
     shootBall();
 });
 
@@ -1199,13 +1201,16 @@ function shootBall() {
     const proj = _v1.dot(_rayDir);
 
     let hit = false;
-    if (proj > 0) {
+    let newVel = null;
+
+    if (proj > 0 && ball.isAlive) {
         _v2.copy(origin).addScaledVector(_rayDir, proj);
         const distToLine = _v2.distanceTo(ball.mesh.position);
 
-        if (distToLine < ball.radius + 0.45 && proj < 35) {
+        // Generous hit detection radius (+0.52m) to absorb slight network latency for 2P
+        if (distToLine < ball.radius + 0.52 && proj < 35) {
             hit = true;
-            onPlayerHitBall();
+            newVel = onPlayerHitBall();
         }
     }
 
@@ -1213,12 +1218,14 @@ function shootBall() {
     const muzzlePos = _v1.setFromMatrixPosition(gunViewModel.matrixWorld);
     fireLaserTracer(muzzlePos, hit ? ball.mesh.position : _v3, isHostPerspective ? 0x00f0ff : 0xff0077);
 
+    // Send shot & hit velocity to remote peer!
     if (currentMode === GAME_MODE.MP_GUEST || currentMode === GAME_MODE.MP_HOST) {
         sendNetEvent({
             type: 'SHOOT',
             hit: hit,
             origin: { x: origin.x, y: origin.y, z: origin.z },
-            dir: { x: _rayDir.x, y: _rayDir.y, z: _rayDir.z }
+            dir: { x: _rayDir.x, y: _rayDir.y, z: _rayDir.z },
+            vel: newVel
         });
     }
 }
@@ -1229,8 +1236,9 @@ function onPlayerHitBall() {
     lastTouchBy = isHostPerspective ? 1 : 2;
 
     updateScoreUI();
-    showBanner(`HIT! RALLY ${rallyCount}`, '#00f0ff');
+    showBanner(`HIT! RALLY ${rallyCount}`, isHostPerspective ? '#00f0ff' : '#ff0077');
 
+    // Host (+Z) shoots towards -Z; Guest (-Z) shoots towards +Z
     const forwardSign = isHostPerspective ? -1 : 1;
     const pushZ = forwardSign * Math.max(3.0, settings.pushZ);
 
@@ -1241,6 +1249,7 @@ function onPlayerHitBall() {
     const pushY = settings.pushY + lowBonus;
 
     ball.vel.set(pushX, pushY, pushZ);
+    return { x: pushX, y: pushY, z: pushZ };
 }
 
 function launchSafeServe(serverIsHost) {
@@ -1264,6 +1273,12 @@ function launchSafeServe(serverIsHost) {
     ball.isAlive = true;
 
     showBanner("SERVE INBOUND", "#00f0ff");
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendNetEvent({
+            type: 'SERVE_ALERT'
+        });
+    }
 }
 
 function updateAIRival(dt) {
@@ -1387,6 +1402,14 @@ function updateAIRival(dt) {
     }
 }
 
+function updateBallVisuals() {
+    ball.groundShadow.position.x = ball.mesh.position.x;
+    ball.groundShadow.position.z = ball.mesh.position.z;
+    const groundDanger = ball.mesh.position.y < 1.5;
+    ball.groundShadow.material.color.setHex(groundDanger ? 0xff0055 : 0x00f0ff);
+    document.getElementById('alt-num').innerText = Math.max(0, ball.mesh.position.y).toFixed(1) + " m";
+}
+
 function updateBallPhysics(dt) {
     if (!ball.isAlive) return;
 
@@ -1400,12 +1423,7 @@ function updateBallPhysics(dt) {
         ball.vel.y = Math.max(2.0, ball.vel.y * 0.8);
     }
 
-    ball.groundShadow.position.x = ball.mesh.position.x;
-    ball.groundShadow.position.z = ball.mesh.position.z;
-    const groundDanger = ball.mesh.position.y < 1.5;
-    ball.groundShadow.material.color.setHex(groundDanger ? 0xff0055 : 0x00f0ff);
-
-    document.getElementById('alt-num').innerText = Math.max(0, ball.mesh.position.y).toFixed(1) + " m";
+    updateBallVisuals();
 
     if (ball.mesh.position.y <= ball.radius) {
         ball.mesh.position.y = ball.radius;
@@ -1418,38 +1436,31 @@ function onBallLanded(landX, landZ) {
     const inBounds = Math.abs(landX) <= (COURT_W / 2) && Math.abs(landZ) <= (COURT_D / 2);
 
     let pointFor = 0;
-    let bannerText = '';
-    let bannerColor = '#ffffff';
+    let isFault = false;
 
     if (inBounds) {
-        audio.playWhistle(false);
-        if (landZ > 0) {
-            pointFor = 2;
-            bannerText = isHostPerspective ? 'IN! RIVAL SCORED' : 'IN! POINT SCORED';
-            bannerColor = '#ff0077';
-        } else {
-            pointFor = 1;
-            bannerText = isHostPerspective ? 'IN! POINT SCORED' : 'IN! RIVAL SCORED';
-            bannerColor = '#00f0ff';
-        }
+        isFault = false;
+        pointFor = (landZ > 0) ? 2 : 1;
     } else {
-        audio.playWhistle(true);
-        if (lastTouchBy === 1) {
-            pointFor = 2;
-            bannerText = isHostPerspective ? 'OUT! YOUR FAULT' : 'OUT! RIVAL OUT';
-            bannerColor = '#ff0077';
-        } else {
-            pointFor = 1;
-            bannerText = isHostPerspective ? 'OUT! RIVAL OUT' : 'OUT! YOUR FAULT';
-            bannerColor = '#00f0ff';
-        }
+        isFault = true;
+        pointFor = (lastTouchBy === 1) ? 2 : 1;
     }
 
     if (pointFor === 1) scoreP1++;
     if (pointFor === 2) scoreP2++;
 
-    updateScoreUI();
-    showBanner(bannerText, bannerColor);
+    applyPointPresentation(pointFor, inBounds, isFault);
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendNetEvent({
+            type: 'POINT_SCORED',
+            pointFor: pointFor,
+            inBounds: inBounds,
+            isFault: isFault,
+            s1: scoreP1,
+            s2: scoreP2
+        });
+    }
 
     if (scoreP1 >= MATCH_TARGET || scoreP2 >= MATCH_TARGET) {
         endMatch();
@@ -1461,6 +1472,23 @@ function onBallLanded(landX, landZ) {
             }
         }, 2200);
     }
+}
+
+function applyPointPresentation(pointFor, inBounds, isFault) {
+    audio.playWhistle(isFault);
+    updateScoreUI();
+
+    const myPlayerNum = isHostPerspective ? 1 : 2;
+    const iScored = (pointFor === myPlayerNum);
+
+    let bannerText = '';
+    if (inBounds) {
+        bannerText = iScored ? 'IN! POINT SCORED!' : 'IN! RIVAL SCORED!';
+    } else {
+        bannerText = iScored ? 'OUT! RIVAL FAULT!' : 'OUT! YOUR FAULT!';
+    }
+    const bannerColor = iScored ? '#00f0ff' : '#ff0077';
+    showBanner(bannerText, bannerColor);
 }
 
 function endMatch() {
@@ -1614,13 +1642,16 @@ function setupP2PConnection(isHost) {
         currentMode = isHost ? GAME_MODE.MP_HOST : GAME_MODE.MP_GUEST;
         isHostPerspective = isHost;
 
-        document.getElementById('p2-label').innerText = isHost ? "RIVAL (2P)" : "HOST (1P)";
-        document.getElementById('p2-label').style.color = "#ff0077";
-
         if (isHost) {
+            document.getElementById('p1-label').innerText = "YOU (1P)";
+            document.getElementById('p2-label').innerText = "FRIEND (2P)";
+            document.getElementById('p2-label').style.color = "#ff0077";
             player.pos.set(0, 1.7, 8.0);
             yaw = 0;
         } else {
+            document.getElementById('p1-label').innerText = "HOST (1P)";
+            document.getElementById('p2-label').innerText = "YOU (2P)";
+            document.getElementById('p2-label').style.color = "#ff0077";
             player.pos.set(0, 1.7, -8.0);
             yaw = Math.PI;
         }
@@ -1654,7 +1685,8 @@ function sendNetEvent(payload) {
 function handleNetData(data) {
     if (data.type === 'SYNC') {
         avatar.group.position.set(data.pos.x, data.pos.y - 1.7, data.pos.z);
-        avatar.group.rotation.y = data.rot;
+        // Face towards net properly
+        avatar.group.rotation.y = data.rot + Math.PI;
 
         if (currentMode === GAME_MODE.MP_GUEST) {
             ball.mesh.position.set(data.ball.x, data.ball.y, data.ball.z);
@@ -1664,6 +1696,7 @@ function handleNetData(data) {
             scoreP2 = data.s2;
             rallyCount = data.rally;
             updateScoreUI();
+            updateBallVisuals();
         }
     } else if (data.type === 'SHOOT') {
         fireLaserTracer(
@@ -1672,9 +1705,34 @@ function handleNetData(data) {
             isHostPerspective ? 0xff0077 : 0x00f0ff
         );
         audio.playShot();
+
+        // CRITICAL FIX: When 2P (Guest) hits the ball, apply the new velocity on 1P (Host)!
         if (data.hit) {
+            audio.playBallHit(true);
             lastTouchBy = isHostPerspective ? 2 : 1;
+
+            if (isHostPerspective && data.vel) {
+                ball.vel.set(data.vel.x, data.vel.y, data.vel.z);
+                rallyCount++;
+                updateScoreUI();
+                showBanner(`RIVAL HIT! RALLY ${rallyCount}`, '#ff0077');
+            }
         }
+    } else if (data.type === 'SERVE_ALERT') {
+        audio.playWhistle(false);
+        showBanner("SERVE INBOUND", "#00f0ff");
+    } else if (data.type === 'POINT_SCORED') {
+        scoreP1 = data.s1;
+        scoreP2 = data.s2;
+        applyPointPresentation(data.pointFor, data.inBounds, data.isFault);
+        if (scoreP1 >= MATCH_TARGET || scoreP2 >= MATCH_TARGET) {
+            endMatch();
+        }
+    } else if (data.type === 'REMATCH') {
+        scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
+        updateScoreUI();
+        document.getElementById('gameover-modal').style.display = 'none';
+        isPlaying = true;
     }
 }
 
@@ -1693,6 +1751,13 @@ function animate(now) {
             if (currentMode === GAME_MODE.SOLO) {
                 updateAIRival(dt);
             }
+        } else if (currentMode === GAME_MODE.MP_GUEST && ball.isAlive) {
+            // Client-side smooth prediction between host sync packets
+            ball.vel.y -= settings.gravity * dt;
+            ball.mesh.position.x += ball.vel.x * dt;
+            ball.mesh.position.y = Math.max(ball.radius, ball.mesh.position.y + ball.vel.y * dt);
+            ball.mesh.position.z += ball.vel.z * dt;
+            updateBallVisuals();
         }
 
         if (conn && conn.open) {
@@ -1799,6 +1864,7 @@ document.getElementById('btn-solo-play').addEventListener('click', () => {
     scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
     updateScoreUI();
 
+    document.getElementById('p1-label').innerText = "YOU (1P)";
     setCpuDifficulty(settings.cpuDifficulty || 'normal');
 
     document.getElementById('menu-modal').style.display = 'none';
@@ -1830,7 +1896,13 @@ document.getElementById('btn-rematch').addEventListener('click', () => {
     document.getElementById('gameover-modal').style.display = 'none';
     isPlaying = true;
     try { renderer.domElement.requestPointerLock(); } catch(e) {}
-    setTimeout(() => { launchSafeServe(true); }, 1200);
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendNetEvent({ type: 'REMATCH' });
+        setTimeout(() => { launchSafeServe(true); }, 1200);
+    } else if (currentMode === GAME_MODE.SOLO) {
+        setTimeout(() => { launchSafeServe(true); }, 1200);
+    }
 });
 document.getElementById('btn-back-menu').addEventListener('click', () => {
     location.reload();
