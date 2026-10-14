@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER VOLLEY FPS - 1v1 P2P & Solo</title>
+    <title>CYBER VOLLEY FPS - TACTICAL EDITION</title>
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- PeerJS -->
@@ -32,6 +32,17 @@
             z-index: 1;
         }
 
+        /* Flashbang Screen Overlay */
+        #flash-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%; height: 100%;
+            background-color: #ffffff;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 50;
+        }
+
         /* Crosshair */
         #crosshair {
             position: absolute;
@@ -49,12 +60,8 @@
             background: rgba(0, 240, 255, 0.9);
             box-shadow: 0 0 8px #00f0ff;
         }
-        #crosshair::before {
-            top: 15px; left: 0; width: 32px; height: 2px;
-        }
-        #crosshair::after {
-            top: 0; left: 15px; width: 2px; height: 32px;
-        }
+        #crosshair::before { top: 15px; left: 0; width: 32px; height: 2px; }
+        #crosshair::after { top: 0; left: 15px; width: 2px; height: 32px; }
         #crosshair-dot {
             position: absolute;
             top: 14px; left: 14px;
@@ -106,11 +113,7 @@
         }
         .cyan-text { color: #00f0ff; text-shadow: 0 0 12px rgba(0, 240, 255, 0.8); }
         .magenta-text { color: #ff0077; text-shadow: 0 0 12px rgba(255, 0, 119, 0.8); }
-        .vs-divider {
-            font-size: 16px;
-            font-weight: 900;
-            color: #64748b;
-        }
+        .vs-divider { font-size: 16px; font-weight: 900; color: #64748b; }
         .rally-counter {
             border-left: 1px solid rgba(255, 255, 255, 0.2);
             padding-left: 20px;
@@ -130,27 +133,64 @@
             padding: 12px 18px;
             backdrop-filter: blur(8px);
         }
-        .alt-label {
-            font-size: 10px;
-            color: #94a3b8;
-            letter-spacing: 1.2px;
-            font-weight: 700;
+        .alt-label { font-size: 10px; color: #94a3b8; letter-spacing: 1.2px; font-weight: 700; }
+        .alt-num { font-size: 22px; font-weight: 900; color: #00f0ff; }
+
+        /* Tactical Skills HUD (Bottom Center) */
+        .hud-skills {
+            position: absolute;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 16px;
         }
-        .alt-num {
-            font-size: 22px;
+        .skill-box {
+            background: rgba(12, 20, 36, 0.88);
+            border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 12px;
+            padding: 8px 16px;
+            min-width: 135px;
+            text-align: center;
+            backdrop-filter: blur(6px);
+            transition: all 0.2s;
+        }
+        .skill-box.ready {
+            border-color: #00f0ff;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+        }
+        .skill-box.cooldown {
+            border-color: rgba(255, 255, 255, 0.15);
+            opacity: 0.6;
+        }
+        .skill-key {
+            font-size: 10px;
             font-weight: 900;
+            color: #94a3b8;
+            letter-spacing: 1px;
+        }
+        .skill-name {
+            font-size: 14px;
+            font-weight: 900;
+            color: #ffffff;
+            margin-top: 2px;
+        }
+        .skill-status {
+            font-size: 11px;
+            font-weight: 800;
             color: #00f0ff;
+            margin-top: 2px;
         }
 
         /* Bottom Controls button */
         .hud-bottom-right {
             position: absolute;
-            bottom: 20px;
+            bottom: 24px;
             right: 25px;
             pointer-events: auto;
             z-index: 15;
             display: flex;
-            gap: 12px;
+            gap: 10px;
         }
         .btn-mini {
             background: rgba(15, 23, 42, 0.9);
@@ -173,16 +213,16 @@
         /* Banner */
         #banner {
             position: absolute;
-            top: 30%;
+            top: 28%;
             left: 50%;
             transform: translate(-50%, -50%);
-            font-size: 40px;
+            font-size: 38px;
             font-weight: 900;
             color: #ffffff;
             text-shadow: 0 0 24px #00f0ff;
             letter-spacing: 2px;
             opacity: 0;
-            transition: opacity 0.3s, transform 0.3s;
+            transition: opacity 0.25s, transform 0.25s;
             pointer-events: none;
             z-index: 20;
             text-align: center;
@@ -207,14 +247,14 @@
             background: linear-gradient(145deg, rgba(17, 28, 48, 0.96), rgba(11, 19, 34, 0.98));
             border: 1px solid rgba(0, 240, 255, 0.45);
             border-radius: 20px;
-            padding: 32px 36px;
+            padding: 30px 34px;
             max-width: 520px;
             width: 100%;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.2);
             text-align: center;
         }
         h1.title {
-            font-size: 32px;
+            font-size: 30px;
             font-weight: 900;
             letter-spacing: 2px;
             background: linear-gradient(90deg, #00f0ff, #ff0077);
@@ -223,23 +263,23 @@
             margin-bottom: 6px;
         }
         .subtitle {
-            font-size: 13px;
+            font-size: 12px;
             color: #94a3b8;
-            margin-bottom: 20px;
+            margin-bottom: 18px;
         }
         .btn-group {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             margin-top: 12px;
         }
         .btn-main {
             background: linear-gradient(90deg, #00d2ff, #0077ff);
             border: none;
             color: #ffffff;
-            font-size: 16px;
+            font-size: 15px;
             font-weight: bold;
-            padding: 13px 22px;
+            padding: 12px 20px;
             border-radius: 12px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
@@ -251,7 +291,7 @@
         }
         .btn-sub {
             background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.25);
+            border: 1px solid rgba(255, 255, 255, 0.22);
             color: #ffffff;
             font-size: 14px;
             font-weight: 600;
@@ -261,8 +301,18 @@
             transition: all 0.2s;
         }
         .btn-sub:hover {
-            background: rgba(255, 255, 255, 0.18);
+            background: rgba(255, 255, 255, 0.16);
             border-color: #00f0ff;
+        }
+        .btn-danger {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.5);
+            color: #fca5a5;
+        }
+        .btn-danger:hover {
+            background: rgba(239, 68, 68, 0.35);
+            border-color: #ef4444;
+            color: #ffffff;
         }
 
         /* CPU Difficulty Component */
@@ -280,77 +330,28 @@
             align-items: center;
             margin-bottom: 8px;
         }
-        .diff-title {
-            font-size: 11px;
-            font-weight: 800;
-            color: #94a3b8;
-            letter-spacing: 1px;
-            text-transform: uppercase;
-        }
-        .diff-badge {
-            font-size: 10px;
-            font-weight: 900;
-            padding: 2px 8px;
-            border-radius: 6px;
-            letter-spacing: 1px;
-        }
-        .badge-normal {
-            background: rgba(0, 240, 255, 0.18);
-            color: #00f0ff;
-            border: 1px solid rgba(0, 240, 255, 0.5);
-        }
-        .badge-hard {
-            background: rgba(245, 158, 11, 0.2);
-            color: #f59e0b;
-            border: 1px solid rgba(245, 158, 11, 0.6);
-        }
-        .badge-god {
-            background: rgba(239, 68, 68, 0.25);
-            color: #ef4444;
-            border: 1px solid rgba(239, 68, 68, 0.8);
-            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
-        }
-        .diff-btn-group {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 8px;
-        }
+        .diff-title { font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; }
+        .diff-badge { font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 6px; letter-spacing: 1px; }
+        .badge-normal { background: rgba(0, 240, 255, 0.18); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.5); }
+        .badge-hard { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.6); }
+        .badge-god { background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.8); }
+        .diff-btn-group { display: flex; gap: 8px; margin-bottom: 6px; }
         .btn-diff {
             flex: 1;
             background: rgba(10, 18, 32, 0.9);
             border: 1px solid rgba(255, 255, 255, 0.15);
             color: #94a3b8;
-            padding: 8px 6px;
+            padding: 7px 6px;
             border-radius: 8px;
             font-size: 13px;
             font-weight: 800;
             cursor: pointer;
             transition: all 0.2s;
         }
-        .btn-diff:hover {
-            border-color: rgba(255, 255, 255, 0.4);
-            color: #ffffff;
-        }
-        .btn-diff.active[data-diff="normal"] {
-            background: linear-gradient(135deg, rgba(0, 240, 255, 0.25), rgba(0, 150, 255, 0.35));
-            border-color: #00f0ff;
-            color: #00f0ff;
-        }
-        .btn-diff.active[data-diff="hard"] {
-            background: linear-gradient(135deg, rgba(245, 158, 11, 0.25), rgba(217, 119, 6, 0.35));
-            border-color: #f59e0b;
-            color: #f59e0b;
-        }
-        .btn-diff.active[data-diff="god"] {
-            background: linear-gradient(135deg, rgba(239, 68, 68, 0.3), rgba(185, 28, 28, 0.4));
-            border-color: #ef4444;
-            color: #ef4444;
-        }
-        .diff-desc {
-            font-size: 11px;
-            color: #64748b;
-            line-height: 1.4;
-        }
+        .btn-diff.active[data-diff="normal"] { background: rgba(0, 240, 255, 0.25); border-color: #00f0ff; color: #00f0ff; }
+        .btn-diff.active[data-diff="hard"] { background: rgba(245, 158, 11, 0.25); border-color: #f59e0b; color: #f59e0b; }
+        .btn-diff.active[data-diff="god"] { background: rgba(239, 68, 68, 0.3); border-color: #ef4444; color: #ef4444; }
+        .diff-desc { font-size: 11px; color: #64748b; }
 
         /* Multiplayer */
         .mp-box {
@@ -358,22 +359,11 @@
             border: 1px dashed rgba(0, 240, 255, 0.45);
             border-radius: 14px;
             padding: 14px;
-            margin-top: 14px;
+            margin-top: 12px;
             text-align: left;
         }
-        .mp-box label {
-            font-size: 11px;
-            font-weight: bold;
-            color: #94a3b8;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: block;
-            margin-bottom: 6px;
-        }
-        .input-row {
-            display: flex;
-            gap: 8px;
-        }
+        .mp-box label { font-size: 11px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px; }
+        .input-row { display: flex; gap: 8px; }
         .input-text {
             flex: 1;
             background: rgba(10, 18, 32, 0.95);
@@ -395,26 +385,52 @@
             cursor: pointer;
         }
 
+        /* Settings Tabs */
+        .settings-tabs {
+            display: flex;
+            gap: 6px;
+            margin-bottom: 16px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+            padding-bottom: 10px;
+        }
+        .tab-btn {
+            flex: 1;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8;
+            padding: 8px 6px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .tab-btn.active {
+            background: rgba(0, 240, 255, 0.2);
+            border-color: #00f0ff;
+            color: #00f0ff;
+        }
+        .tab-panel { display: none; }
+        .tab-panel.active { display: block; }
+
         /* Tuning card */
         .tuning-card {
-            max-width: 480px;
+            max-width: 500px;
             text-align: left;
-            max-height: 85vh;
+            max-height: 88vh;
             overflow-y: auto;
         }
-        .param-row {
-            margin-bottom: 14px;
-        }
+        .param-row { margin-bottom: 13px; }
         .param-header {
             display: flex;
             justify-content: space-between;
             font-size: 13px;
             font-weight: 600;
-            margin-bottom: 3px;
+            margin-bottom: 2px;
         }
         .param-name { color: #d0e0ff; }
         .param-val { color: #00f0ff; font-weight: bold; }
-        .param-desc { font-size: 10px; color: #8fa0c0; margin-bottom: 6px; }
+        .param-desc { font-size: 10px; color: #8fa0c0; margin-bottom: 5px; }
         input[type="range"] {
             width: 100%;
             height: 6px;
@@ -427,24 +443,29 @@
 
         .controls-hint {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 15px;
+            gap: 10px;
             font-size: 11px;
-            color: #64748b;
+            color: #94a3b8;
             margin-top: 16px;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 10px;
+            border-radius: 10px;
         }
     </style>
 </head>
 <body>
 
     <div id="canvas-container"></div>
+    <div id="flash-overlay"></div>
     <div id="crosshair"><div id="crosshair-dot"></div></div>
 
     <!-- HUD Overlay -->
     <div id="hud">
         <div class="hud-top">
             <div class="score-block">
-                <span class="score-label" id="p1-label">HOST (1P)</span>
+                <span class="score-label" id="p1-label">YOU (1P)</span>
                 <span class="score-val cyan-text" id="score-p1">0</span>
             </div>
             <div class="vs-divider">VS</div>
@@ -463,21 +484,34 @@
             <div class="alt-num" id="alt-num">0.0 m</div>
         </div>
 
+        <!-- Tactical Skills Status -->
+        <div class="hud-skills">
+            <div class="skill-box ready" id="hud-smash-box">
+                <div class="skill-key">[右クリック] 空中強打</div>
+                <div class="skill-name">⚡ SMASH</div>
+                <div class="skill-status" id="hud-smash-status">READY</div>
+            </div>
+            <div class="skill-box ready" id="hud-flash-box">
+                <div class="skill-key">[E キー] 閃光弾</div>
+                <div class="skill-name">💥 FLASH</div>
+                <div class="skill-status" id="hud-flash-status">READY (1/1)</div>
+            </div>
+        </div>
+
         <div class="hud-bottom-right">
-            <button class="btn-mini" id="btn-open-settings">⚙️ 設定＆難易度 (ESC)</button>
+            <button class="btn-mini" id="btn-open-pause">⏸️ メニュー / 設定 (ESC)</button>
         </div>
     </div>
 
     <!-- Banner -->
     <div id="banner">READY</div>
 
-    <!-- START MENU -->
+    <!-- 1. START MAIN MENU -->
     <div id="menu-modal" class="modal-screen">
         <div class="menu-card">
             <h1 class="title">CYBER VOLLEY FPS</h1>
-            <p class="subtitle">銃でボールを撃ち落とさない新感覚3Dサイバーバレーボール</p>
+            <p class="subtitle">スマッシュ・妨害ノックバック・閃光弾搭載 タクティカルバレー</p>
 
-            <!-- CPU Difficulty Selector Component -->
             <div class="diff-container">
                 <div class="diff-header">
                     <span class="diff-title">🤖 CPU 難易度設定</span>
@@ -505,107 +539,187 @@
                 <p id="peer-status-text" style="font-size:11px; color:#00f0ff; margin-top:8px;">相手の参加を待機しています...</p>
             </div>
 
-            <div class="btn-group" style="margin-top:14px;">
-                <button class="btn-sub" id="btn-settings-menu">⚙️ 物理＆感度調整</button>
+            <div class="btn-group" style="margin-top:12px;">
+                <button class="btn-sub" id="btn-settings-menu">⚙️ カスタムルール＆物理・感度設定</button>
             </div>
 
             <div class="controls-hint">
                 <span>[WASD] 移動</span>
                 <span>[SPACE] ジャンプ</span>
-                <span>[SHIFT] ダッシュ</span>
-                <span>[左クリック] 射撃</span>
-                <span>[ESC] 設定</span>
+                <span>[左クリック] 通常ショット / 相手妨害</span>
+                <span>[空中+右クリック] スマッシュ</span>
+                <span>[E] フラッシュ</span>
+                <span>[ESC] ポーズ</span>
             </div>
         </div>
     </div>
 
-    <!-- SETTINGS MODAL -->
+    <!-- 2. ESC PAUSE MENU MODAL (During Match) -->
+    <div id="pause-modal" class="modal-screen" style="display:none;">
+        <div class="menu-card" style="max-width:420px;">
+            <h1 class="title" style="font-size:26px;">PAUSED</h1>
+            <p class="subtitle">試合中メニュー</p>
+
+            <div class="btn-group">
+                <button class="btn-main" id="btn-resume">▶️ ゲームに戻る (Resume)</button>
+                <button class="btn-sub" id="btn-pause-rematch">🔄 スコアを0-0にして最初からやり直す</button>
+                <button class="btn-sub" id="btn-pause-settings">⚙️ ルール・物理・感度設定を開く</button>
+                <button class="btn-sub btn-danger" id="btn-pause-quit">🚪 メインメニューへ戻る (退出)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. REDESIGNED TABBED SETTINGS MODAL -->
     <div id="settings-modal" class="modal-screen" style="display:none;">
         <div class="menu-card tuning-card">
-            <h1 class="title" style="font-size:24px; margin-bottom:4px;">SETTINGS</h1>
-            <p class="subtitle" style="margin-bottom:14px;">CPU難易度、銃の反発物理、感度をいつでも調整可能</p>
+            <h1 class="title" style="font-size:24px; margin-bottom:4px;">CUSTOM SETTINGS</h1>
+            <p class="subtitle" style="margin-bottom:12px;">※P2P対戦時はホストの設定がルーム全体に自動同期されます</p>
 
-            <div class="diff-container" style="margin-bottom:16px;">
-                <div class="diff-header">
-                    <span class="diff-title">🤖 CPU 難易度変更</span>
-                    <span class="diff-badge badge-normal" id="diff-badge-settings">NORMAL</span>
-                </div>
-                <div class="diff-btn-group" id="diff-group-settings">
-                    <button class="btn-diff active" data-diff="normal">普通</button>
-                    <button class="btn-diff" data-diff="hard">強い</button>
-                    <button class="btn-diff" data-diff="god">無敵</button>
-                </div>
-                <div class="diff-desc" id="diff-desc-settings">適度なラリーが楽しめる標準難易度</div>
+            <!-- Category Tabs -->
+            <div class="settings-tabs">
+                <button class="tab-btn active" data-tab="tab-rules">⚡ スキル＆ルール</button>
+                <button class="tab-btn" data-tab="tab-physics">🏐 ボール物理</button>
+                <button class="tab-btn" data-tab="tab-controls">🎯 感度＆CPU</button>
             </div>
 
-            <div class="param-row">
-                <div class="param-header">
-                    <span class="param-name">① 打ち上げ高さ (Vertical Lift)</span>
-                    <span class="param-val" id="val-pushY">8.2 m/s</span>
+            <!-- TAB 1: RULES & SKILLS -->
+            <div class="tab-panel active" id="tab-rules">
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">🔥 スマッシュの球速・威力 (Smash Power)</span>
+                        <span class="param-val" id="val-smashPower">1.0x</span>
+                    </div>
+                    <div class="param-desc">空中右クリック強打のスピード倍率 (高いほど超高速レーザー弾道になります)</div>
+                    <input type="range" id="slider-smashPower" min="0.5" max="2.5" step="0.1" value="1.0">
                 </div>
-                <div class="param-desc">弾が当たった時の上方向の跳ね上がり力 (標準: 8.2)</div>
-                <input type="range" id="slider-pushY" min="4.0" max="14.0" step="0.2" value="8.2">
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">⚡ スマッシュ クールダウン (右クリック)</span>
+                        <span class="param-val" id="val-smashCd">2.0 秒</span>
+                    </div>
+                    <div class="param-desc">空中＋ネットより高い打点で右クリック強打した後の再使用時間 (0秒で連発可)</div>
+                    <input type="range" id="slider-smashCd" min="0.0" max="5.0" step="0.5" value="2.0">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">🛡️ 妨害被弾後の無敵時間 (ノックバック)</span>
+                        <span class="param-val" id="val-invuln">1.5 秒</span>
+                    </div>
+                    <div class="param-desc">相手を撃って吹き飛ばした後、連続で撃たれない保護時間 (0秒でハメ可)</div>
+                    <input type="range" id="slider-invuln" min="0.0" max="3.0" step="0.2" value="1.5">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">💥 妨害ノックバックの強さ</span>
+                        <span class="param-val" id="val-knockback">11.0</span>
+                    </div>
+                    <div class="param-desc">相手に銃弾を当てた時に後方へ弾き飛ばす威力</div>
+                    <input type="range" id="slider-knockback" min="4.0" max="20.0" step="1.0" value="11.0">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">🔀 ボール分裂ラリー回数 (マルチボール)</span>
+                        <span class="param-val" id="val-splitRally">15 回</span>
+                    </div>
+                    <div class="param-desc">指定ラリー数に達するとボールが2個に分裂！どちらか落ちたら即失点</div>
+                    <input type="range" id="slider-splitRally" min="5" max="30" step="1" value="15">
+                </div>
             </div>
 
-            <div class="param-row">
-                <div class="param-header">
-                    <span class="param-name">② 相手コートへの前進ドライブ (Forward Push)</span>
-                    <span class="param-val" id="val-pushZ">4.5 m/s</span>
+            <!-- TAB 2: BALL PHYSICS -->
+            <div class="tab-panel" id="tab-physics">
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">① 打ち上げ高さ (Vertical Lift)</span>
+                        <span class="param-val" id="val-pushY">8.2 m/s</span>
+                    </div>
+                    <div class="param-desc">通常ショット時の上方向の跳ね上がり力 (推奨: 6.0 〜 8.5)</div>
+                    <input type="range" id="slider-pushY" min="4.0" max="14.0" step="0.2" value="8.2">
                 </div>
-                <div class="param-desc">弾が当たった時の相手陣地へ押し込む推進力 (標準: 4.5)</div>
-                <input type="range" id="slider-pushZ" min="2.0" max="10.0" step="0.2" value="4.5">
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">② 相手コートへの前進ドライブ (Forward Push)</span>
+                        <span class="param-val" id="val-pushZ">4.5 m/s</span>
+                    </div>
+                    <div class="param-desc">通常ショット時の相手陣地へ押し込む推進力 (推奨: 3.0 〜 5.0)</div>
+                    <input type="range" id="slider-pushZ" min="2.0" max="10.0" step="0.2" value="4.5">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">③ ボール重力 (Ball Gravity)</span>
+                        <span class="param-val" id="val-gravity">7.5</span>
+                    </div>
+                    <div class="param-desc">ボールの落下速度 (低いとフワリと滞空 / 高いと鋭いラリー)</div>
+                    <input type="range" id="slider-gravity" min="4.0" max="12.0" step="0.5" value="7.5">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">④ 左右散りやすさ (Horizontal Spread)</span>
+                        <span class="param-val" id="val-pushX">8.0</span>
+                    </div>
+                    <div class="param-desc">エイムの左右方向が弾道に影響する度合い</div>
+                    <input type="range" id="slider-pushX" min="2.0" max="14.0" step="0.5" value="8.0">
+                </div>
             </div>
 
-            <div class="param-row">
-                <div class="param-header">
-                    <span class="param-name">③ ボール重力 (Ball Gravity)</span>
-                    <span class="param-val" id="val-gravity">7.5</span>
+            <!-- TAB 3: CONTROLS & CPU -->
+            <div class="tab-panel" id="tab-controls">
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">🎯 マウス視点感度 (Aim Sensitivity)</span>
+                        <span class="param-val" id="val-sens">1.0x</span>
+                    </div>
+                    <div class="param-desc">FPSカメラの回転スピード (個人の設定として保持されます)</div>
+                    <input type="range" id="slider-sens" min="0.2" max="3.0" step="0.1" value="1.0">
                 </div>
-                <div class="param-desc">ボールの落下速度 (低いとフワリと滞空 / 高いと鋭いラリー)</div>
-                <input type="range" id="slider-gravity" min="4.0" max="12.0" step="0.5" value="7.5">
+
+                <div class="diff-container" style="margin-top:14px;">
+                    <div class="diff-header">
+                        <span class="diff-title">🤖 ソロ用 CPU 難易度変更</span>
+                        <span class="diff-badge badge-normal" id="diff-badge-settings">NORMAL</span>
+                    </div>
+                    <div class="diff-btn-group" id="diff-group-settings">
+                        <button class="btn-diff active" data-diff="normal">普通</button>
+                        <button class="btn-diff" data-diff="hard">強い</button>
+                        <button class="btn-diff" data-diff="god">無敵</button>
+                    </div>
+                    <div class="diff-desc" id="diff-desc-settings">適度なラリーが楽しめる標準難易度</div>
+                </div>
             </div>
 
-            <div class="param-row">
-                <div class="param-header">
-                    <span class="param-name">④ 左右散りやすさ (Horizontal Spread)</span>
-                    <span class="param-val" id="val-pushX">8.0</span>
-                </div>
-                <div class="param-desc">エイムの左右ブレが弾道に影響する度合い</div>
-                <input type="range" id="slider-pushX" min="2.0" max="14.0" step="0.5" value="8.0">
-            </div>
-
-            <div class="param-row">
-                <div class="param-header">
-                    <span class="param-name">🎯 マウス視点感度 (Aim Sensitivity)</span>
-                    <span class="param-val" id="val-sens">1.0x</span>
-                </div>
-                <div class="param-desc">FPSカメラの回転スピード</div>
-                <input type="range" id="slider-sens" min="0.2" max="3.0" step="0.1" value="1.0">
-            </div>
-
-            <div class="btn-group" style="flex-direction:row; margin-top:16px;">
-                <button class="btn-sub" id="btn-reset-physics" style="flex:1;">↺ 初期値</button>
-                <button class="btn-main" id="btn-close-settings" style="flex:1;">完了</button>
+            <div class="btn-group" style="flex-direction:row; margin-top:18px;">
+                <button class="btn-sub" id="btn-reset-physics" style="flex:1;">↺ 初期値に戻す</button>
+                <button class="btn-main" id="btn-close-settings" style="flex:1;">保存して閉じる</button>
             </div>
         </div>
     </div>
 
-    <!-- GAME OVER MODAL -->
+    <!-- 4. GAME OVER MODAL -->
     <div id="gameover-modal" class="modal-screen" style="display:none;">
         <div class="menu-card">
             <h1 class="title" id="match-winner-title">MATCH FINISHED</h1>
             <p class="subtitle" id="match-winner-sub">スコア結果</p>
             <div class="btn-group">
                 <button class="btn-main" id="btn-rematch">🔄 もう一度対戦する</button>
-                <button class="btn-sub" id="btn-back-menu">タイトルへ戻る</button>
+                <button class="btn-sub" id="btn-back-menu">🚪 メインメニューへ戻る</button>
             </div>
         </div>
     </div>
 
 <script>
 /* ==========================================================================
-   CYBER VOLLEY FPS - ENGINE SCRIPT (P2P GUEST HIT SYNC FIXED)
+   CYBER VOLLEY FPS - TACTICAL EDITION ENGINE
    ========================================================================== */
+
+// Disable context menu so Right-Click Smash works smoothly
+window.addEventListener('contextmenu', (e) => e.preventDefault());
 
 const DEFAULT_SETTINGS = {
     pushY: 8.2,
@@ -613,22 +727,26 @@ const DEFAULT_SETTINGS = {
     gravity: 7.5,
     pushX: 8.0,
     sensitivity: 1.0,
-    cpuDifficulty: 'normal'
+    cpuDifficulty: 'normal',
+    smashPower: 1.0,
+    smashCooldown: 2.0,
+    hitInvulnTime: 1.5,
+    knockbackPower: 11.0,
+    splitRallyCount: 15
 };
 
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 
 function loadSavedSettings() {
     try {
-        const raw = localStorage.getItem('cyber_volley_settings');
+        const raw = localStorage.getItem('cyber_volley_tactical_settings');
         if (raw) {
             const parsed = JSON.parse(raw);
-            if (parsed.pushY !== undefined) settings.pushY = parseFloat(parsed.pushY);
-            if (parsed.pushZ !== undefined) settings.pushZ = parseFloat(parsed.pushZ);
-            if (parsed.gravity !== undefined) settings.gravity = parseFloat(parsed.gravity);
-            if (parsed.pushX !== undefined) settings.pushX = parseFloat(parsed.pushX);
-            if (parsed.sensitivity !== undefined) settings.sensitivity = parseFloat(parsed.sensitivity);
-            if (parsed.cpuDifficulty !== undefined) settings.cpuDifficulty = parsed.cpuDifficulty;
+            Object.keys(DEFAULT_SETTINGS).forEach(k => {
+                if (parsed[k] !== undefined) {
+                    settings[k] = (typeof DEFAULT_SETTINGS[k] === 'number') ? parseFloat(parsed[k]) : parsed[k];
+                }
+            });
         }
     } catch(e) {}
 }
@@ -636,57 +754,31 @@ loadSavedSettings();
 
 function saveSettings() {
     try {
-        localStorage.setItem('cyber_volley_settings', JSON.stringify(settings));
+        localStorage.setItem('cyber_volley_tactical_settings', JSON.stringify(settings));
     } catch(e) {}
+    // If connected as Host, broadcast updated rule settings to Guest
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendHostSettings();
+    }
 }
 
 const CPU_CONFIGS = {
     normal: {
-        id: 'normal',
-        badge: 'NORMAL',
-        badgeClass: 'badge-normal',
-        hudLabel: 'CPU (NORMAL)',
-        colorHex: 0x00f0ff,
-        hudColor: '#00f0ff',
-        moveSpeed: 8.0,
-        baseZ: -8.5,
-        canMoveZ: false,
-        predictive: false,
-        reach: 4.5,
-        minY: 0.8,
-        maxY: 3.8,
+        id: 'normal', badge: 'NORMAL', badgeClass: 'badge-normal', hudLabel: 'CPU (NORMAL)',
+        colorHex: 0x00f0ff, hudColor: '#00f0ff', moveSpeed: 8.0, baseZ: -8.5,
+        canMoveZ: false, predictive: false, reach: 4.5, minY: 0.8, maxY: 3.8,
         desc: '適度なラリーが楽しめる標準難易度'
     },
     hard: {
-        id: 'hard',
-        badge: 'HARD',
-        badgeClass: 'badge-hard',
-        hudLabel: 'CPU (HARD)',
-        colorHex: 0xf59e0b,
-        hudColor: '#f59e0b',
-        moveSpeed: 17.0,
-        baseZ: -8.0,
-        canMoveZ: true,
-        predictive: true,
-        reach: 5.6,
-        minY: 0.5,
-        maxY: 4.8,
+        id: 'hard', badge: 'HARD', badgeClass: 'badge-hard', hudLabel: 'CPU (HARD)',
+        colorHex: 0xf59e0b, hudColor: '#f59e0b', moveSpeed: 17.0, baseZ: -8.0,
+        canMoveZ: true, predictive: true, reach: 5.6, minY: 0.5, maxY: 4.8,
         desc: '落下地点を先読みし、プレイヤーの逆サイドへ打ち分ける実力派'
     },
     god: {
-        id: 'god',
-        badge: '無敵 (GOD)',
-        badgeClass: 'badge-god',
-        hudLabel: 'CPU (無敵/GOD)',
-        colorHex: 0xef4444,
-        hudColor: '#ef4444',
-        moveSpeed: 42.0,
-        baseZ: -8.0,
-        canMoveZ: true,
-        predictive: true,
-        reach: 9.5,
-        minY: 0.25,
-        maxY: 5.6,
+        id: 'god', badge: '無敵 (GOD)', badgeClass: 'badge-god', hudLabel: 'CPU (無敵/GOD)',
+        colorHex: 0xef4444, hudColor: '#ef4444', moveSpeed: 42.0, baseZ: -8.0,
+        canMoveZ: true, predictive: true, reach: 9.5, minY: 0.25, maxY: 5.6,
         desc: '神速の先回りとコート四隅への超高速スパイク。鉄壁のボス'
     }
 };
@@ -702,6 +794,13 @@ let rallyCount = 0;
 const MATCH_TARGET = 7;
 let lastTouchBy = 1;
 
+// Cooldowns & Skill States
+let smashCdTimer = 0;
+let flashCharges = 1;
+let myInvulnTimer = 0;
+let rivalInvulnTimer = 0;
+let flashBlindOpacity = 0;
+
 const _v1 = new THREE.Vector3();
 const _v2 = new THREE.Vector3();
 const _v3 = new THREE.Vector3();
@@ -711,80 +810,82 @@ const COURT_W = 14.0;
 const COURT_D = 24.0;
 const NET_Y = 2.43;
 
-const ball = {
-    mesh: null,
-    radius: 0.42,
-    pos: new THREE.Vector3(0, 2.0, 0),
-    vel: new THREE.Vector3(0, 0, 0),
-    isAlive: false,
-    groundShadow: null
-};
+// Dual-Ball Array for Multi-Ball Split Mechanics
+const balls = [];
+const BALL_RADIUS = 0.42;
 
+/* ==========================================================================
+   WEB AUDIO SYNTHESIZER
+   ========================================================================== */
 class AudioController {
-    constructor() {
-        this.ctx = null;
-    }
+    constructor() { this.ctx = null; }
     init() {
         try {
             if (!this.ctx) {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 this.ctx = new AudioCtx();
             }
-            if (this.ctx && this.ctx.state === 'suspended') {
-                this.ctx.resume();
-            }
+            if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
         } catch(e) {}
     }
-    playShot() {
+    playShot(isSmash = false) {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-            osc.type = 'sawtooth';
-            osc.frequency.setValueAtTime(420, now);
-            osc.frequency.exponentialRampToValueAtTime(70, now + 0.12);
-            gain.gain.setValueAtTime(0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.12);
+            osc.type = isSmash ? 'square' : 'sawtooth';
+            osc.frequency.setValueAtTime(isSmash ? 680 : 420, now);
+            osc.frequency.exponentialRampToValueAtTime(60, now + (isSmash ? 0.22 : 0.12));
+            gain.gain.setValueAtTime(isSmash ? 0.5 : 0.3, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + (isSmash ? 0.22 : 0.12));
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + (isSmash ? 0.22 : 0.12));
         } catch(e) {}
     }
-    playBallHit(isSpike = false) {
+    playBallHit(isSmash = false) {
+        if (!this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = isSmash ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(isSmash ? 360 : 220, now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.24);
+            gain.gain.setValueAtTime(isSmash ? 0.8 : 0.6, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + 0.24);
+        } catch(e) {}
+    }
+    playFlashPop(isBlinded = false) {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
             osc.type = 'sine';
-            const baseFreq = isSpike ? 260 : 180;
-            osc.frequency.setValueAtTime(baseFreq, now);
-            osc.frequency.exponentialRampToValueAtTime(90, now + 0.22);
-            gain.gain.setValueAtTime(0.65, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.22);
+            osc.frequency.setValueAtTime(isBlinded ? 3100 : 1200, now);
+            const dur = isBlinded ? 1.6 : 0.3;
+            gain.gain.setValueAtTime(isBlinded ? 0.35 : 0.2, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + dur);
         } catch(e) {}
     }
-    playAISpike(isGod = false) {
+    playKnockback() {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
             const osc = this.ctx.createOscillator();
             const gain = this.ctx.createGain();
-            osc.type = isGod ? 'sawtooth' : 'triangle';
-            osc.frequency.setValueAtTime(isGod ? 520 : 380, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.25);
-            gain.gain.setValueAtTime(isGod ? 0.75 : 0.55, now);
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(160, now);
+            osc.frequency.exponentialRampToValueAtTime(45, now + 0.25);
+            gain.gain.setValueAtTime(0.6, now);
             gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
-            osc.connect(gain);
-            gain.connect(this.ctx.destination);
-            osc.start(now);
-            osc.stop(now + 0.25);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + 0.25);
         } catch(e) {}
     }
     playWhistle(isFault = false) {
@@ -798,41 +899,35 @@ class AudioController {
                 osc.frequency.setValueAtTime(freq, start);
                 gain.gain.setValueAtTime(0.12, start);
                 gain.gain.exponentialRampToValueAtTime(0.001, start + dur);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(start);
-                osc.stop(start + dur);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(start); osc.stop(start + dur);
             };
-            if (isFault) {
-                playTone(now, 0.45, 2200);
-            } else {
-                playTone(now, 0.14, 2400);
-                playTone(now + 0.18, 0.32, 2700);
-            }
+            if (isFault) playTone(now, 0.45, 2200);
+            else { playTone(now, 0.14, 2400); playTone(now + 0.18, 0.32, 2700); }
         } catch(e) {}
     }
     playCheer() {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
-            const notes = [440, 554, 659, 880];
-            notes.forEach((freq, idx) => {
+            [440, 554, 659, 880].forEach((freq, idx) => {
                 const osc = this.ctx.createOscillator();
                 const gain = this.ctx.createGain();
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(freq, now + idx * 0.08);
                 gain.gain.setValueAtTime(0.2, now + idx * 0.08);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.08 + 0.3);
-                osc.connect(gain);
-                gain.connect(this.ctx.destination);
-                osc.start(now + idx * 0.08);
-                osc.stop(now + idx * 0.08 + 0.3);
+                osc.connect(gain); gain.connect(this.ctx.destination);
+                osc.start(now + idx * 0.08); osc.stop(now + idx * 0.08 + 0.3);
             });
         } catch(e) {}
     }
 }
 const audio = new AudioController();
 
+/* ==========================================================================
+   THREE.JS SCENE & ARENA
+   ========================================================================== */
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a1120);
@@ -846,8 +941,7 @@ renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
-const ambientLight = new THREE.AmbientLight(0xffffff, 0.65);
-scene.add(ambientLight);
+scene.add(new THREE.AmbientLight(0xffffff, 0.65));
 
 const sunLight = new THREE.DirectionalLight(0xffffff, 0.95);
 sunLight.position.set(15, 32, 10);
@@ -860,44 +954,31 @@ const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.45);
 fillLight.position.set(-18, 22, -15);
 scene.add(fillLight);
 
-const rimLight = new THREE.DirectionalLight(0xff0077, 0.35);
-rimLight.position.set(0, 15, -28);
-scene.add(rimLight);
-
 function buildCourtAndArena() {
-    const floorGeo = new THREE.PlaneGeometry(100, 100);
-    const floorMat = new THREE.MeshLambertMaterial({ color: 0x111c30 });
-    const arenaFloor = new THREE.Mesh(floorGeo, floorMat);
+    const arenaFloor = new THREE.Mesh(
+        new THREE.PlaneGeometry(100, 100),
+        new THREE.MeshLambertMaterial({ color: 0x111c30 })
+    );
     arenaFloor.rotation.x = -Math.PI / 2;
     arenaFloor.receiveShadow = true;
     scene.add(arenaFloor);
 
     const courtCanvas = document.createElement('canvas');
-    courtCanvas.width = 512;
-    courtCanvas.height = 1024;
+    courtCanvas.width = 512; courtCanvas.height = 1024;
     const ctx = courtCanvas.getContext('2d');
-    ctx.fillStyle = '#b87b41';
-    ctx.fillRect(0, 0, 512, 1024);
-    ctx.strokeStyle = 'rgba(0,0,0,0.12)';
-    ctx.lineWidth = 4;
+    ctx.fillStyle = '#b87b41'; ctx.fillRect(0, 0, 512, 1024);
+    ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 4;
     for (let y = 0; y < 1024; y += 32) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(512, y);
-        ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
     }
-    ctx.strokeStyle = '#ffffff';
-    ctx.lineWidth = 14;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 14;
     ctx.strokeRect(16, 16, 480, 992);
-    ctx.beginPath();
-    ctx.moveTo(16, 512);
-    ctx.lineTo(496, 512);
-    ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(16, 512); ctx.lineTo(496, 512); ctx.stroke();
 
-    const courtTex = new THREE.CanvasTexture(courtCanvas);
-    const courtGeo = new THREE.PlaneGeometry(COURT_W, COURT_D);
-    const courtMat = new THREE.MeshLambertMaterial({ map: courtTex, roughness: 0.35 });
-    const courtMesh = new THREE.Mesh(courtGeo, courtMat);
+    const courtMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(COURT_W, COURT_D),
+        new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(courtCanvas) })
+    );
     courtMesh.rotation.x = -Math.PI / 2;
     courtMesh.position.y = 0.01;
     courtMesh.receiveShadow = true;
@@ -905,190 +986,165 @@ function buildCourtAndArena() {
 
     const wallMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
     const wallH = 16.0;
-
-    const backWallGeo = new THREE.PlaneGeometry(60, wallH);
-    const backWall = new THREE.Mesh(backWallGeo, wallMat);
+    const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, wallH), wallMat);
     backWall.position.set(0, wallH / 2, -32);
     scene.add(backWall);
 
-    const ledGeo = new THREE.PlaneGeometry(60, 0.6);
-    const ledMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const backLed = new THREE.Mesh(ledGeo, ledMat);
-    backLed.position.set(0, 4.0, -31.9);
-    scene.add(backLed);
-
-    const nearWall = new THREE.Mesh(backWallGeo, wallMat);
+    const nearWall = backWall.clone();
     nearWall.rotation.y = Math.PI;
     nearWall.position.set(0, wallH / 2, 32);
     scene.add(nearWall);
 
-    const sideWallGeo = new THREE.PlaneGeometry(64, wallH);
-    const leftWall = new THREE.Mesh(sideWallGeo, wallMat);
+    const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(64, wallH), wallMat);
     leftWall.rotation.y = Math.PI / 2;
     leftWall.position.set(-25, wallH / 2, 0);
     scene.add(leftWall);
 
-    const rightWall = new THREE.Mesh(sideWallGeo, wallMat);
+    const rightWall = leftWall.clone();
     rightWall.rotation.y = -Math.PI / 2;
     rightWall.position.set(25, wallH / 2, 0);
     scene.add(rightWall);
 
-    const poleGeo = new THREE.CylinderGeometry(0.09, 0.09, 3.4, 12);
+    // Net & Poles
     const poleMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    const poleL = new THREE.Mesh(poleGeo, poleMat);
+    const poleL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.4, 12), poleMat);
     poleL.position.set(-COURT_W / 2 - 0.4, 1.7, 0);
-    poleL.castShadow = true;
     scene.add(poleL);
-
-    const poleR = poleL.clone();
-    poleR.position.x = COURT_W / 2 + 0.4;
-    scene.add(poleR);
+    const poleR = poleL.clone(); poleR.position.x = COURT_W / 2 + 0.4; scene.add(poleR);
 
     const netCanvas = document.createElement('canvas');
-    netCanvas.width = 128;
-    netCanvas.height = 128;
+    netCanvas.width = 128; netCanvas.height = 128;
     const nctx = netCanvas.getContext('2d');
-    nctx.strokeStyle = 'rgba(240, 248, 255, 0.9)';
-    nctx.lineWidth = 3;
+    nctx.strokeStyle = 'rgba(240, 248, 255, 0.9)'; nctx.lineWidth = 3;
     for (let i = 0; i < 128; i += 16) {
         nctx.beginPath(); nctx.moveTo(i, 0); nctx.lineTo(i, 128); nctx.stroke();
         nctx.beginPath(); nctx.moveTo(0, i); nctx.lineTo(128, i); nctx.stroke();
     }
     const netTex = new THREE.CanvasTexture(netCanvas);
-    netTex.wrapS = THREE.RepeatWrapping;
-    netTex.wrapT = THREE.RepeatWrapping;
-    netTex.repeat.set(24, 2);
+    netTex.wrapS = THREE.RepeatWrapping; netTex.wrapT = THREE.RepeatWrapping; netTex.repeat.set(24, 2);
 
-    const netGeo = new THREE.PlaneGeometry(COURT_W + 0.8, 1.0);
-    const netMat = new THREE.MeshBasicMaterial({
-        map: netTex,
-        transparent: true,
-        side: THREE.DoubleSide
-    });
-    const netMesh = new THREE.Mesh(netGeo, netMat);
+    const netMesh = new THREE.Mesh(
+        new THREE.PlaneGeometry(COURT_W + 0.8, 1.0),
+        new THREE.MeshBasicMaterial({ map: netTex, transparent: true, side: THREE.DoubleSide })
+    );
     netMesh.position.set(0, NET_Y - 0.5, 0);
     scene.add(netMesh);
 
-    const tapeGeo = new THREE.BoxGeometry(COURT_W + 0.8, 0.09, 0.09);
-    const tapeMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
-    const topTape = new THREE.Mesh(tapeGeo, tapeMat);
+    const topTape = new THREE.Mesh(
+        new THREE.BoxGeometry(COURT_W + 0.8, 0.09, 0.09),
+        new THREE.MeshLambertMaterial({ color: 0xffffff })
+    );
     topTape.position.set(0, NET_Y, 0);
     scene.add(topTape);
-
-    const antGeo = new THREE.CylinderGeometry(0.025, 0.025, 1.6, 8);
-    const antMat = new THREE.MeshBasicMaterial({ color: 0xff2222 });
-    const antL = new THREE.Mesh(antGeo, antMat);
-    antL.position.set(-COURT_W / 2, NET_Y + 0.4, 0);
-    scene.add(antL);
-    const antR = antL.clone();
-    antR.position.x = COURT_W / 2;
-    scene.add(antR);
 }
 buildCourtAndArena();
 
-function buildBall() {
+// --- BUILD DUAL VOLLEYBALLS (For Split Ball Mechanics) ---
+function createBallObject(isSecondBall = false) {
     const bCanvas = document.createElement('canvas');
-    bCanvas.width = 512;
-    bCanvas.height = 256;
+    bCanvas.width = 512; bCanvas.height = 256;
     const bctx = bCanvas.getContext('2d');
-    bctx.fillStyle = '#ffffff';
-    bctx.fillRect(0, 0, 512, 256);
-    bctx.fillStyle = '#f5c518';
-    bctx.beginPath();
-    bctx.ellipse(150, 128, 120, 80, 0.4, 0, Math.PI * 2);
-    bctx.fill();
-    bctx.fillStyle = '#0055b8';
-    bctx.beginPath();
-    bctx.ellipse(360, 128, 120, 80, -0.4, 0, Math.PI * 2);
-    bctx.fill();
+    bctx.fillStyle = '#ffffff'; bctx.fillRect(0, 0, 512, 256);
+    bctx.fillStyle = isSecondBall ? '#ff0077' : '#f5c518';
+    bctx.beginPath(); bctx.ellipse(150, 128, 120, 80, 0.4, 0, Math.PI * 2); bctx.fill();
+    bctx.fillStyle = isSecondBall ? '#00f0ff' : '#0055b8';
+    bctx.beginPath(); bctx.ellipse(360, 128, 120, 80, -0.4, 0, Math.PI * 2); bctx.fill();
 
-    const ballTex = new THREE.CanvasTexture(bCanvas);
-    const ballGeo = new THREE.SphereGeometry(ball.radius, 24, 20);
-    const ballMat = new THREE.MeshLambertMaterial({ map: ballTex, roughness: 0.3 });
-    ball.mesh = new THREE.Mesh(ballGeo, ballMat);
-    ball.mesh.castShadow = true;
-    scene.add(ball.mesh);
+    const mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(BALL_RADIUS, 24, 20),
+        new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(bCanvas) })
+    );
+    mesh.castShadow = true;
+    mesh.visible = false;
+    scene.add(mesh);
 
-    const ringGeo = new THREE.RingGeometry(0.35, 0.5, 24);
-    const ringMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 });
-    ball.groundShadow = new THREE.Mesh(ringGeo, ringMat);
-    ball.groundShadow.rotation.x = -Math.PI / 2;
-    ball.groundShadow.position.y = 0.03;
-    scene.add(ball.groundShadow);
+    const shadow = new THREE.Mesh(
+        new THREE.RingGeometry(0.35, 0.5, 24),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
+    );
+    shadow.rotation.x = -Math.PI / 2;
+    shadow.position.y = 0.03;
+    shadow.visible = false;
+    scene.add(shadow);
+
+    return {
+        mesh: mesh,
+        groundShadow: shadow,
+        vel: new THREE.Vector3(),
+        isAlive: false
+    };
 }
-buildBall();
+balls.push(createBallObject(false)); // Primary ball (balls[0])
+balls.push(createBallObject(true));  // Split clone ball (balls[1])
 
+// --- FLASHBANG ORB OBJECT ---
+const flashOrb = {
+    mesh: null,
+    active: false,
+    vel: new THREE.Vector3(),
+    timer: 0
+};
+function buildFlashOrb() {
+    const geo = new THREE.SphereGeometry(0.22, 16, 16);
+    const mat = new THREE.MeshBasicMaterial({ color: 0xffffaa });
+    flashOrb.mesh = new THREE.Mesh(geo, mat);
+    flashOrb.mesh.visible = false;
+    scene.add(flashOrb.mesh);
+}
+buildFlashOrb();
+
+// --- CYBORG AVATAR ---
 const avatar = {
     group: new THREE.Group(),
     blaster: null,
     targetMarker: null,
     visorMat: null,
     coreMat: null,
-    gunGlowMat: null
+    gunGlowMat: null,
+    armorMat: null,
+    vel: new THREE.Vector3()
 };
 
 function buildAvatar() {
-    const whiteArmorMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc });
+    avatar.armorMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc, transparent: true, opacity: 1.0 });
     avatar.visorMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
     avatar.coreMat  = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
     avatar.gunGlowMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
 
-    const headGeo = new THREE.SphereGeometry(0.26, 16, 14);
-    const head = new THREE.Mesh(headGeo, whiteArmorMat);
-    head.position.y = 1.72;
-    avatar.group.add(head);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), avatar.armorMat);
+    head.position.y = 1.72; avatar.group.add(head);
 
-    const visorGeo = new THREE.BoxGeometry(0.34, 0.1, 0.22);
-    const visor = new THREE.Mesh(visorGeo, avatar.visorMat);
-    visor.position.set(0, 1.72, 0.17);
-    avatar.group.add(visor);
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.22), avatar.visorMat);
+    visor.position.set(0, 1.72, 0.17); avatar.group.add(visor);
 
-    const torsoGeo = new THREE.CylinderGeometry(0.28, 0.22, 0.75, 12);
-    const torso = new THREE.Mesh(torsoGeo, whiteArmorMat);
-    torso.position.y = 1.15;
-    avatar.group.add(torso);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.75, 12), avatar.armorMat);
+    torso.position.y = 1.15; avatar.group.add(torso);
 
-    const coreGeo = new THREE.SphereGeometry(0.08, 12, 12);
-    const core = new THREE.Mesh(coreGeo, avatar.coreMat);
-    core.position.set(0, 1.25, 0.22);
-    avatar.group.add(core);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), avatar.coreMat);
+    core.position.set(0, 1.25, 0.22); avatar.group.add(core);
 
     const shoulderGeo = new THREE.SphereGeometry(0.14, 12, 12);
-    const shoulderL = new THREE.Mesh(shoulderGeo, whiteArmorMat);
-    shoulderL.position.set(-0.38, 1.4, 0);
-    avatar.group.add(shoulderL);
-
-    const shoulderR = new THREE.Mesh(shoulderGeo, whiteArmorMat);
-    shoulderR.position.set(0.38, 1.4, 0);
-    avatar.group.add(shoulderR);
+    const shoulderL = new THREE.Mesh(shoulderGeo, avatar.armorMat);
+    shoulderL.position.set(-0.38, 1.4, 0); avatar.group.add(shoulderL);
+    const shoulderR = shoulderL.clone(); shoulderR.position.x = 0.38; avatar.group.add(shoulderR);
 
     const armGroup = new THREE.Group();
     armGroup.position.set(0.42, 1.2, 0.1);
-    const gunGeo = new THREE.BoxGeometry(0.14, 0.16, 0.55);
-    const gunMat = new THREE.MeshLambertMaterial({ color: 0xe2e8f0 });
-    avatar.blaster = new THREE.Mesh(gunGeo, gunMat);
+    avatar.blaster = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.55), avatar.armorMat);
     avatar.blaster.position.z = 0.28;
-    
-    const gunGlowGeo = new THREE.BoxGeometry(0.15, 0.04, 0.4);
-    const gunGlow = new THREE.Mesh(gunGlowGeo, avatar.gunGlowMat);
-    gunGlow.position.y = 0.08;
-    avatar.blaster.add(gunGlow);
-
-    armGroup.add(avatar.blaster);
-    avatar.group.add(armGroup);
+    const gunGlow = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.4), avatar.gunGlowMat);
+    gunGlow.position.y = 0.08; avatar.blaster.add(gunGlow);
+    armGroup.add(avatar.blaster); avatar.group.add(armGroup);
 
     const legGeo = new THREE.CylinderGeometry(0.1, 0.08, 0.8, 10);
-    const legL = new THREE.Mesh(legGeo, whiteArmorMat);
-    legL.position.set(-0.16, 0.45, 0);
-    avatar.group.add(legL);
+    const legL = new THREE.Mesh(legGeo, avatar.armorMat);
+    legL.position.set(-0.16, 0.45, 0); avatar.group.add(legL);
+    const legR = legL.clone(); legR.position.x = 0.16; avatar.group.add(legR);
 
-    const legR = new THREE.Mesh(legGeo, whiteArmorMat);
-    legR.position.set(0.16, 0.45, 0);
-    avatar.group.add(legR);
-
-    const markerGeo = new THREE.ConeGeometry(0.18, 0.32, 4);
-    const markerMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    avatar.targetMarker = new THREE.Mesh(markerGeo, markerMat);
+    avatar.targetMarker = new THREE.Mesh(
+        new THREE.ConeGeometry(0.18, 0.32, 4),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+    );
     avatar.targetMarker.rotation.x = Math.PI;
     avatar.targetMarker.position.set(0, 2.35, 0);
     avatar.group.add(avatar.targetMarker);
@@ -1105,20 +1161,21 @@ function updateAvatarColors(diffKey) {
     if (avatar.targetMarker) avatar.targetMarker.material.color.setHex(cfg.colorHex);
 }
 
+// --- VIEWMODEL & TRACER ---
 const gunViewModel = new THREE.Group();
 let gunRecoil = 0;
 
 function buildViewModel() {
-    const bodyGeo = new THREE.BoxGeometry(0.14, 0.18, 0.55);
-    const bodyMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
-    const gunBody = new THREE.Mesh(bodyGeo, bodyMat);
-
-    const glowGeo = new THREE.BoxGeometry(0.15, 0.04, 0.4);
-    const glowMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    const glowStrip = new THREE.Mesh(glowGeo, glowMat);
+    const gunBody = new THREE.Mesh(
+        new THREE.BoxGeometry(0.14, 0.18, 0.55),
+        new THREE.MeshLambertMaterial({ color: 0x1e293b })
+    );
+    const glowStrip = new THREE.Mesh(
+        new THREE.BoxGeometry(0.15, 0.04, 0.4),
+        new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+    );
     glowStrip.position.y = 0.08;
     gunBody.add(glowStrip);
-
     gunViewModel.add(gunBody);
     gunViewModel.position.set(0.26, -0.25, -0.55);
     camera.add(gunViewModel);
@@ -1126,7 +1183,7 @@ function buildViewModel() {
 }
 buildViewModel();
 
-const tracerGeo = new THREE.CylinderGeometry(0.015, 0.015, 1, 6);
+const tracerGeo = new THREE.CylinderGeometry(0.02, 0.02, 1, 6);
 const tracerMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.9 });
 const tracerMesh = new THREE.Mesh(tracerGeo, tracerMat);
 tracerMesh.visible = false;
@@ -1139,9 +1196,12 @@ function fireLaserTracer(from, to, hexColor = 0x00f0ff) {
     tracerMesh.scale.set(1, dist, 1);
     tracerMesh.position.copy(from).lerp(to, 0.5);
     tracerMesh.quaternion.setFromUnitVectors(new THREE.Vector3(0, 1, 0), to.clone().sub(from).normalize());
-    setTimeout(() => { tracerMesh.visible = false; }, 60);
+    setTimeout(() => { tracerMesh.visible = false; }, 65);
 }
 
+/* ==========================================================================
+   CONTROLS, SHOOTING, SMASH, KNOCKBACK & FLASHBANG
+   ========================================================================== */
 const keys = {};
 let isPointerLocked = false;
 let pitch = 0;
@@ -1149,24 +1209,32 @@ let yaw = 0;
 const player = {
     pos: new THREE.Vector3(0, 1.7, 8.0),
     vel: new THREE.Vector3(),
+    knockVel: new THREE.Vector3(),
     onGround: true,
     walkSpeed: 7.0,
     dashSpeed: 10.5,
-    jumpPower: 6.8
+    jumpPower: 7.2
 };
 
 window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
     if (e.code === 'Escape') {
-        toggleSettingsModal();
+        if (document.getElementById('settings-modal').style.display === 'flex') {
+            closeSettingsModal();
+        } else if (isPlaying) {
+            togglePauseModal();
+        }
+    }
+    if (e.code === 'KeyE' && isPlaying) {
+        triggerFlashSkill();
     }
 });
-window.addEventListener('keyup', (e) => {
-    keys[e.code] = false;
-});
+window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
 renderer.domElement.addEventListener('click', () => {
-    if (isPlaying && !isPointerLocked) {
+    if (isPlaying && !isPointerLocked &&
+        document.getElementById('pause-modal').style.display !== 'flex' &&
+        document.getElementById('settings-modal').style.display !== 'flex') {
         try { renderer.domElement.requestPointerLock(); } catch(e) {}
     }
 });
@@ -1184,123 +1252,325 @@ document.addEventListener('mousemove', (e) => {
 });
 
 window.addEventListener('mousedown', (e) => {
-    if (e.button !== 0 || !isPlaying) return;
-    // Prevent shooting when clicking UI buttons
-    if (document.getElementById('settings-modal').style.display === 'flex') return;
-    shootBall();
+    if (!isPlaying) return;
+    if (document.getElementById('pause-modal').style.display === 'flex' ||
+        document.getElementById('settings-modal').style.display === 'flex') return;
+
+    if (e.button === 0) {
+        shootAction(false); // Left-click: Normal Shot / Opponent Knockback
+    } else if (e.button === 2) {
+        shootAction(true);  // Right-click: Aerial Smash
+    }
 });
 
-function shootBall() {
-    audio.playShot();
-    gunRecoil = 0.16;
+function shootAction(wantsSmash) {
+    let isSmash = false;
+    if (wantsSmash) {
+        if (smashCdTimer > 0) {
+            showBanner(`SMASH COOLDOWN (${smashCdTimer.toFixed(1)}s)`, '#f59e0b');
+            return;
+        }
+        if (player.onGround) {
+            showBanner('JUMP TO SMASH! (空中限定)', '#f59e0b');
+            return;
+        }
+        isSmash = true;
+    }
+
+    audio.playShot(isSmash);
+    gunRecoil = isSmash ? 0.28 : 0.16;
 
     camera.getWorldDirection(_rayDir);
     const origin = camera.position;
 
-    _v1.subVectors(ball.mesh.position, origin);
-    const proj = _v1.dot(_rayDir);
-
-    let hit = false;
+    let hitBallIdx = -1;
     let newVel = null;
 
-    if (proj > 0 && ball.isAlive) {
-        _v2.copy(origin).addScaledVector(_rayDir, proj);
-        const distToLine = _v2.distanceTo(ball.mesh.position);
+    // 1. Check hit against active Volleyballs
+    for (let i = 0; i < balls.length; i++) {
+        const b = balls[i];
+        if (!b.isAlive) continue;
 
-        // Generous hit detection radius (+0.52m) to absorb slight network latency for 2P
-        if (distToLine < ball.radius + 0.52 && proj < 35) {
-            hit = true;
-            newVel = onPlayerHitBall();
+        _v1.subVectors(b.mesh.position, origin);
+        const proj = _v1.dot(_rayDir);
+        if (proj > 0 && proj < 35) {
+            _v2.copy(origin).addScaledVector(_rayDir, proj);
+            const distToLine = _v2.distanceTo(b.mesh.position);
+            if (distToLine < BALL_RADIUS + 0.55) {
+                if (isSmash && b.mesh.position.y < NET_Y - 0.15) {
+                    showBanner('TOO LOW FOR SMASH! (打点が低い)', '#f59e0b');
+                    isSmash = false;
+                }
+                hitBallIdx = i;
+                newVel = applyPlayerHitToBall(b, isSmash);
+                if (isSmash) {
+                    smashCdTimer = settings.smashCooldown;
+                }
+                break;
+            }
         }
     }
 
+    // 2. Check hit against Opponent Avatar (Knockback Interference!)
+    let hitOpponent = false;
+    let knockVec = null;
+    if (hitBallIdx === -1 && rivalInvulnTimer <= 0) {
+        const avatarCenter = _v1.copy(avatar.group.position).add(new THREE.Vector3(0, 1.1, 0));
+        _v2.subVectors(avatarCenter, origin);
+        const proj = _v2.dot(_rayDir);
+        if (proj > 0 && proj < 40) {
+            _v3.copy(origin).addScaledVector(_rayDir, proj);
+            if (_v3.distanceTo(avatarCenter) < 0.78) {
+                hitOpponent = true;
+                rivalInvulnTimer = settings.hitInvulnTime;
+                audio.playKnockback();
+                showBanner('💥 OPPONENT KNOCKBACK!', '#ff0077');
+
+                const pushDirZ = isHostPerspective ? -1 : 1;
+                knockVec = {
+                    x: _rayDir.x * settings.knockbackPower * 0.85,
+                    z: pushDirZ * settings.knockbackPower
+                };
+                if (currentMode === GAME_MODE.SOLO) {
+                    avatar.vel.set(knockVec.x, 0, knockVec.z);
+                }
+            }
+        }
+    }
+
+    // Tracer visual
     _v3.copy(origin).addScaledVector(_rayDir, 30);
     const muzzlePos = _v1.setFromMatrixPosition(gunViewModel.matrixWorld);
-    fireLaserTracer(muzzlePos, hit ? ball.mesh.position : _v3, isHostPerspective ? 0x00f0ff : 0xff0077);
+    const targetPoint = (hitBallIdx !== -1) ? balls[hitBallIdx].mesh.position : (hitOpponent ? avatar.group.position.clone().add(new THREE.Vector3(0, 1.2, 0)) : _v3);
+    const tracerColor = isSmash ? 0xf59e0b : (isHostPerspective ? 0x00f0ff : 0xff0077);
+    fireLaserTracer(muzzlePos, targetPoint, tracerColor);
 
-    // Send shot & hit velocity to remote peer!
+    // Send Network Packet
     if (currentMode === GAME_MODE.MP_GUEST || currentMode === GAME_MODE.MP_HOST) {
         sendNetEvent({
             type: 'SHOOT',
-            hit: hit,
-            origin: { x: origin.x, y: origin.y, z: origin.z },
-            dir: { x: _rayDir.x, y: _rayDir.y, z: _rayDir.z },
-            vel: newVel
+            isSmash: isSmash,
+            hitBallIdx: hitBallIdx,
+            vel: newVel,
+            hitOpponent: hitOpponent,
+            knockVec: knockVec,
+            origin: { x: origin.x, y: origin.y, z: origin.z }
         });
     }
 }
 
-function onPlayerHitBall() {
-    audio.playBallHit(true);
+function applyPlayerHitToBall(b, isSmash) {
+    audio.playBallHit(isSmash);
     rallyCount++;
     lastTouchBy = isHostPerspective ? 1 : 2;
-
     updateScoreUI();
-    showBanner(`HIT! RALLY ${rallyCount}`, isHostPerspective ? '#00f0ff' : '#ff0077');
 
-    // Host (+Z) shoots towards -Z; Guest (-Z) shoots towards +Z
     const forwardSign = isHostPerspective ? -1 : 1;
-    const pushZ = forwardSign * Math.max(3.0, settings.pushZ);
-
     camera.getWorldDirection(_rayDir);
-    const pushX = _rayDir.x * settings.pushX;
 
-    const lowBonus = Math.max(0, (2.0 - ball.mesh.position.y) * 0.7);
-    const pushY = settings.pushY + lowBonus;
+    let pushX, pushY, pushZ;
 
-    ball.vel.set(pushX, pushY, pushZ);
+    if (isSmash) {
+        // SMASH: Scaled by settings.smashPower (0.5x ~ 2.5x)
+        showBanner(`⚡ AERIAL SMASH!! (${settings.smashPower.toFixed(1)}x)`, '#f59e0b');
+        const targetZ = forwardSign * (4.5 + Math.max(0, _rayDir.y + 0.3) * 6.0);
+        const targetX = Math.max(-6.2, Math.min(6.2, b.mesh.position.x + _rayDir.x * 11.0));
+        
+        // Higher smashPower = shorter flight time = faster laser ball speed!
+        const powerMultiplier = Math.max(0.5, settings.smashPower || 1.0);
+        const smashTime = 1.25 / powerMultiplier;
+
+        pushZ = (targetZ - b.mesh.position.z) / smashTime;
+        pushX = (targetX - b.mesh.position.x) / smashTime;
+        pushY = (0.5 - b.mesh.position.y + 0.5 * settings.gravity * (smashTime ** 2)) / smashTime;
+
+        // Guarantee net clearance so high-speed smashes skim right over the net tape
+        const tNet = (0 - b.mesh.position.z) / pushZ;
+        if (tNet > 0) {
+            const yAtNet = b.mesh.position.y + pushY * tNet - 0.5 * settings.gravity * (tNet ** 2);
+            if (yAtNet < NET_Y + 0.25) {
+                pushY = (NET_Y + 0.3 - b.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
+            }
+        }
+    } else {
+        // NORMAL SHOT
+        showBanner(`HIT! RALLY ${rallyCount}`, isHostPerspective ? '#00f0ff' : '#ff0077');
+        pushZ = forwardSign * Math.max(3.0, settings.pushZ);
+        pushX = _rayDir.x * settings.pushX;
+        const lowBonus = Math.max(0, (2.0 - b.mesh.position.y) * 0.7);
+        pushY = settings.pushY + lowBonus;
+    }
+
+    b.vel.set(pushX, pushY, pushZ);
+
+    // Check Multi-Ball Split Trigger (Host or Solo controls split)
+    if ((currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) &&
+        rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
+        triggerMultiBallSplit(b);
+    }
+
     return { x: pushX, y: pushY, z: pushZ };
 }
 
+function triggerMultiBallSplit(sourceBall) {
+    const b2 = balls[1];
+    b2.isAlive = true;
+    b2.mesh.visible = true;
+    b2.groundShadow.visible = true;
+    b2.mesh.position.copy(sourceBall.mesh.position);
+    b2.vel.set(-sourceBall.vel.x - 2.5, sourceBall.vel.y + 0.8, sourceBall.vel.z);
+    sourceBall.vel.x += 2.5;
+
+    showBanner('⚠️ MULTI-BALL SPLIT!! (2個モード突入)', '#ff0077');
+    audio.playWhistle(false);
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendNetEvent({
+            type: 'SPLIT_BALL',
+            pos: { x: b2.mesh.position.x, y: b2.mesh.position.y, z: b2.mesh.position.z },
+            v1: { x: sourceBall.vel.x, y: sourceBall.vel.y, z: sourceBall.vel.z },
+            v2: { x: b2.vel.x, y: b2.vel.y, z: b2.vel.z }
+        });
+    }
+}
+
+/* ==========================================================================
+   VALORANT-STYLE FLASHBANG SKILL (E KEY)
+   ========================================================================== */
+function triggerFlashSkill() {
+    if (flashCharges <= 0) {
+        showBanner('NO FLASH CHARGES LEFT (1ラリー1回)', '#94a3b8');
+        return;
+    }
+    flashCharges--;
+    updateSkillHUD();
+
+    camera.getWorldDirection(_rayDir);
+    const startPos = camera.position.clone().addScaledVector(_rayDir, 1.0);
+    const vel = _rayDir.clone().multiplyScalar(14.0);
+    vel.y += 3.5;
+
+    spawnFlashOrb(startPos, vel);
+
+    if (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST) {
+        sendNetEvent({
+            type: 'FLASH_CAST',
+            pos: { x: startPos.x, y: startPos.y, z: startPos.z },
+            vel: { x: vel.x, y: vel.y, z: vel.z }
+        });
+    }
+}
+
+function spawnFlashOrb(pos, vel) {
+    flashOrb.active = true;
+    flashOrb.timer = 0.72;
+    flashOrb.mesh.position.set(pos.x, pos.y, pos.z);
+    flashOrb.vel.set(vel.x, vel.y, vel.z);
+    flashOrb.mesh.visible = true;
+    showBanner('💥 FLASH OUT!', '#ffffaa');
+}
+
+function updateFlashOrb(dt) {
+    if (!flashOrb.active) return;
+    flashOrb.timer -= dt;
+    flashOrb.mesh.position.addScaledVector(flashOrb.vel, dt);
+
+    if (flashOrb.timer <= 0) {
+        detonateFlashOrb();
+    }
+}
+
+function detonateFlashOrb() {
+    flashOrb.active = false;
+    flashOrb.mesh.visible = false;
+
+    camera.getWorldDirection(_rayDir);
+    const toOrb = _v1.subVectors(flashOrb.mesh.position, camera.position).normalize();
+    const dot = _rayDir.dot(toOrb);
+
+    if (dot > 0.22) {
+        flashBlindOpacity = 1.9;
+        audio.playFlashPop(true);
+        showBanner('😵 BLINDED!! (視界奪取)', '#ffffff');
+    } else {
+        flashBlindOpacity = 0.25;
+        audio.playFlashPop(false);
+        showBanner('😎 FLASH DODGED! (回避成功)', '#00f0ff');
+    }
+}
+
+/* ==========================================================================
+   SERVE & BALL PHYSICS
+   ========================================================================== */
 function launchSafeServe(serverIsHost) {
     audio.playWhistle(false);
     rallyCount = 0;
+    flashCharges = 1;
+    smashCdTimer = 0;
     updateScoreUI();
+    updateSkillHUD();
 
     lastTouchBy = serverIsHost ? 1 : 2;
 
     const spawnZ = serverIsHost ? (COURT_D / 2 - 2.0) : (-COURT_D / 2 + 2.0);
     const targetZ = serverIsHost ? -6.0 : 6.0;
 
-    ball.mesh.position.set(0, 2.2, spawnZ);
+    const b0 = balls[0];
+    b0.mesh.position.set(0, 2.2, spawnZ);
+    b0.mesh.visible = true;
+    b0.groundShadow.visible = true;
 
     const serveFlightTime = 2.8;
     const serveVz = (targetZ - spawnZ) / serveFlightTime;
-    const targetHitY = 1.8;
-    const serveVy = (targetHitY - 2.2 + 0.5 * settings.gravity * (serveFlightTime ** 2)) / serveFlightTime;
+    const serveVy = (1.8 - 2.2 + 0.5 * settings.gravity * (serveFlightTime ** 2)) / serveFlightTime;
 
-    ball.vel.set(0, serveVy, serveVz);
-    ball.isAlive = true;
+    b0.vel.set(0, serveVy, serveVz);
+    b0.isAlive = true;
+
+    balls[1].isAlive = false;
+    balls[1].mesh.visible = false;
+    balls[1].groundShadow.visible = false;
 
     showBanner("SERVE INBOUND", "#00f0ff");
 
     if (currentMode === GAME_MODE.MP_HOST) {
-        sendNetEvent({
-            type: 'SERVE_ALERT'
-        });
+        sendNetEvent({ type: 'SERVE_ALERT' });
     }
 }
 
 function updateAIRival(dt) {
-    if (currentMode !== GAME_MODE.SOLO || !ball.isAlive) return;
+    if (currentMode !== GAME_MODE.SOLO) return;
+
+    if (avatar.vel.lengthSq() > 0.01) {
+        avatar.group.position.x += avatar.vel.x * dt;
+        avatar.group.position.z += avatar.vel.z * dt;
+        avatar.vel.multiplyScalar(Math.max(0, 1.0 - dt * 6.0));
+        avatar.group.position.x = Math.max(-8.0, Math.min(8.0, avatar.group.position.x));
+        avatar.group.position.z = Math.max(-16.0, Math.min(-0.8, avatar.group.position.z));
+    }
+
+    let targetBall = balls[0];
+    if (balls[1].isAlive && balls[1].mesh.position.z < balls[0].mesh.position.z) {
+        targetBall = balls[1];
+    }
+    if (!targetBall.isAlive) return;
 
     const cfg = CPU_CONFIGS[settings.cpuDifficulty] || CPU_CONFIGS.normal;
 
     let targetX = 0;
     let targetZ = cfg.baseZ;
 
-    if (cfg.predictive && ball.vel.z < 0) {
+    if (cfg.predictive && targetBall.vel.z < 0) {
         const a = 0.5 * settings.gravity;
-        const b = -ball.vel.y;
-        const c = ball.radius - ball.mesh.position.y;
+        const b = -targetBall.vel.y;
+        const c = BALL_RADIUS - targetBall.mesh.position.y;
         const disc = b * b - 4 * a * c;
 
         if (disc >= 0) {
             const t = (-b + Math.sqrt(disc)) / (2 * a);
             if (t > 0) {
-                const predX = ball.mesh.position.x + ball.vel.x * t;
-                const predZ = ball.mesh.position.z + ball.vel.z * t;
-
+                const predX = targetBall.mesh.position.x + targetBall.vel.x * t;
+                const predZ = targetBall.mesh.position.z + targetBall.vel.z * t;
                 if (predZ < 0) {
                     targetX = Math.max(-6.2, Math.min(6.2, predX));
                     targetZ = Math.max(-11.2, Math.min(-2.2, predZ));
@@ -1308,128 +1578,113 @@ function updateAIRival(dt) {
             }
         }
     } else {
-        targetX = Math.max(-5.5, Math.min(5.5, ball.mesh.position.x));
+        targetX = Math.max(-5.5, Math.min(5.5, targetBall.mesh.position.x));
     }
 
     avatar.group.position.x += (targetX - avatar.group.position.x) * Math.min(1.0, dt * cfg.moveSpeed);
     if (cfg.canMoveZ) {
         avatar.group.position.z += (targetZ - avatar.group.position.z) * Math.min(1.0, dt * cfg.moveSpeed);
-    } else {
+    } else if (avatar.vel.lengthSq() <= 0.1) {
         avatar.group.position.z = cfg.baseZ;
     }
 
-    avatar.group.lookAt(ball.mesh.position.x, 1.2, ball.mesh.position.z);
+    avatar.group.lookAt(targetBall.mesh.position.x, 1.2, targetBall.mesh.position.z);
 
-    if (avatar.targetMarker) {
-        avatar.targetMarker.rotation.y += dt * 3.0;
-    }
-
-    if (ball.mesh.position.z < -0.4 && ball.vel.z < 0) {
-        const dist = avatar.group.position.distanceTo(ball.mesh.position);
-
-        if (dist < cfg.reach && ball.mesh.position.y >= cfg.minY && ball.mesh.position.y <= cfg.maxY) {
+    if (targetBall.mesh.position.z < -0.4 && targetBall.vel.z < 0) {
+        const dist = avatar.group.position.distanceTo(targetBall.mesh.position);
+        if (dist < cfg.reach && targetBall.mesh.position.y >= cfg.minY && targetBall.mesh.position.y <= cfg.maxY) {
             const isGod = (cfg.id === 'god');
             const isHard = (cfg.id === 'hard');
 
-            audio.playShot();
-            if (isGod || isHard) {
-                audio.playAISpike(isGod);
-            } else {
-                audio.playBallHit();
-            }
+            audio.playShot(isGod);
+            audio.playBallHit(isGod || isHard);
 
             const muzzle = avatar.blaster.position.clone().add(avatar.group.position);
-            fireLaserTracer(muzzle, ball.mesh.position, cfg.colorHex);
+            fireLaserTracer(muzzle, targetBall.mesh.position, cfg.colorHex);
 
             rallyCount++;
             lastTouchBy = 2;
             updateScoreUI();
 
-            let returnX = 0;
-            let returnZ = 7.0;
-            let flightTime = 2.4;
+            let returnX = 0, returnZ = 7.0, flightTime = 2.4;
 
             if (isGod) {
                 const aimOpposite = player.pos.x >= 0 ? -1 : 1;
-                if (Math.random() < 0.7) {
-                    returnX = aimOpposite * (5.8 + Math.random() * 0.5);
-                    returnZ = 9.8 + Math.random() * 1.4;
-                } else {
-                    returnX = aimOpposite * (5.2 + Math.random() * 0.8);
-                    returnZ = 2.0 + Math.random() * 1.2;
-                }
-                flightTime = 1.2 + Math.random() * 0.15;
+                returnX = aimOpposite * (5.5 + Math.random() * 0.7);
+                returnZ = (Math.random() < 0.7) ? (9.5 + Math.random() * 1.5) : (2.2 + Math.random() * 1.2);
+                flightTime = 1.25;
                 showBanner("GOD SPIKE!!", "#ef4444");
-
             } else if (isHard) {
-                if (player.pos.x > 1.0) {
-                    returnX = -4.2 - Math.random() * 1.8;
-                } else if (player.pos.x < -1.0) {
-                    returnX = 4.2 + Math.random() * 1.8;
-                } else {
-                    returnX = (Math.random() > 0.5 ? 4.8 : -4.8) + (Math.random() - 0.5);
-                }
-
-                if (Math.random() < 0.25) {
-                    returnZ = 2.8 + Math.random() * 1.4;
-                    showBanner("CPU DROP SHOT!", "#f59e0b");
-                } else {
-                    returnZ = 7.2 + Math.random() * 3.6;
-                    showBanner("CPU HARD SPIKE!", "#f59e0b");
-                }
-                flightTime = 1.65 + Math.random() * 0.15;
-
+                returnX = (player.pos.x > 0 ? -4.5 : 4.5) + (Math.random() - 0.5) * 1.5;
+                returnZ = 6.5 + Math.random() * 3.5;
+                flightTime = 1.65;
+                showBanner("CPU HARD SPIKE!", "#f59e0b");
             } else {
                 returnX = (Math.random() - 0.5) * 5.0;
                 returnZ = 5.0 + Math.random() * 3.0;
                 flightTime = 2.4;
             }
 
-            const vz = (returnZ - ball.mesh.position.z) / flightTime;
-            const vx = (returnX - ball.mesh.position.x) / flightTime;
-            let vy = (1.8 - ball.mesh.position.y + 0.5 * settings.gravity * (flightTime ** 2)) / flightTime;
+            const vz = (returnZ - targetBall.mesh.position.z) / flightTime;
+            const vx = (returnX - targetBall.mesh.position.x) / flightTime;
+            let vy = (1.8 - targetBall.mesh.position.y + 0.5 * settings.gravity * (flightTime ** 2)) / flightTime;
 
-            const tNet = (0 - ball.mesh.position.z) / vz;
+            const tNet = (0 - targetBall.mesh.position.z) / vz;
             if (tNet > 0) {
-                const yAtNet = ball.mesh.position.y + vy * tNet - 0.5 * settings.gravity * (tNet ** 2);
+                const yAtNet = targetBall.mesh.position.y + vy * tNet - 0.5 * settings.gravity * (tNet ** 2);
                 if (yAtNet < NET_Y + 0.35) {
-                    vy = (NET_Y + 0.45 - ball.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
+                    vy = (NET_Y + 0.45 - targetBall.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
                 }
             }
+            targetBall.vel.set(vx, vy, vz);
 
-            ball.vel.set(vx, vy, vz);
+            if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
+                triggerMultiBallSplit(targetBall);
+            }
         }
     }
 }
 
 function updateBallVisuals() {
-    ball.groundShadow.position.x = ball.mesh.position.x;
-    ball.groundShadow.position.z = ball.mesh.position.z;
-    const groundDanger = ball.mesh.position.y < 1.5;
-    ball.groundShadow.material.color.setHex(groundDanger ? 0xff0055 : 0x00f0ff);
-    document.getElementById('alt-num').innerText = Math.max(0, ball.mesh.position.y).toFixed(1) + " m";
+    for (let i = 0; i < balls.length; i++) {
+        const b = balls[i];
+        if (!b.isAlive) {
+            b.groundShadow.visible = false;
+            continue;
+        }
+        b.groundShadow.visible = true;
+        b.groundShadow.position.x = b.mesh.position.x;
+        b.groundShadow.position.z = b.mesh.position.z;
+        const groundDanger = b.mesh.position.y < 1.5;
+        b.groundShadow.material.color.setHex(groundDanger ? 0xff0055 : 0x00f0ff);
+    }
+    document.getElementById('alt-num').innerText = Math.max(0, balls[0].mesh.position.y).toFixed(1) + " m";
 }
 
 function updateBallPhysics(dt) {
-    if (!ball.isAlive) return;
+    for (let i = 0; i < balls.length; i++) {
+        const b = balls[i];
+        if (!b.isAlive) continue;
 
-    ball.vel.y -= settings.gravity * dt;
-    ball.mesh.position.x += ball.vel.x * dt;
-    ball.mesh.position.y += ball.vel.y * dt;
-    ball.mesh.position.z += ball.vel.z * dt;
+        b.vel.y -= settings.gravity * dt;
+        b.mesh.position.x += b.vel.x * dt;
+        b.mesh.position.y += b.vel.y * dt;
+        b.mesh.position.z += b.vel.z * dt;
 
-    if (Math.abs(ball.mesh.position.z) < 0.25 && ball.mesh.position.y < NET_Y) {
-        ball.vel.z = -ball.vel.z * 0.5;
-        ball.vel.y = Math.max(2.0, ball.vel.y * 0.8);
+        if (Math.abs(b.mesh.position.z) < 0.25 && b.mesh.position.y < NET_Y) {
+            b.vel.z = -b.vel.z * 0.5;
+            b.vel.y = Math.max(2.0, b.vel.y * 0.8);
+        }
+
+        if (b.mesh.position.y <= BALL_RADIUS) {
+            b.mesh.position.y = BALL_RADIUS;
+            balls[0].isAlive = false;
+            balls[1].isAlive = false;
+            onBallLanded(b.mesh.position.x, b.mesh.position.z);
+            break;
+        }
     }
-
     updateBallVisuals();
-
-    if (ball.mesh.position.y <= ball.radius) {
-        ball.mesh.position.y = ball.radius;
-        ball.isAlive = false;
-        onBallLanded(ball.mesh.position.x, ball.mesh.position.z);
-    }
 }
 
 function onBallLanded(landX, landZ) {
@@ -1467,8 +1722,7 @@ function onBallLanded(landX, landZ) {
     } else {
         setTimeout(() => {
             if (isPlaying) {
-                const serverIs1P = (pointFor === 1);
-                launchSafeServe(serverIs1P);
+                launchSafeServe(pointFor === 1);
             }
         }, 2200);
     }
@@ -1487,8 +1741,7 @@ function applyPointPresentation(pointFor, inBounds, isFault) {
     } else {
         bannerText = iScored ? 'OUT! RIVAL FAULT!' : 'OUT! YOUR FAULT!';
     }
-    const bannerColor = iScored ? '#00f0ff' : '#ff0077';
-    showBanner(bannerText, bannerColor);
+    showBanner(bannerText, iScored ? '#00f0ff' : '#ff0077');
 }
 
 function endMatch() {
@@ -1505,8 +1758,30 @@ function endMatch() {
     document.getElementById('gameover-modal').style.display = 'flex';
 }
 
+/* ==========================================================================
+   PLAYER MOVEMENT, TIMERS & HUD UPDATES
+   ========================================================================== */
 function updatePlayer(dt) {
     if (!isPlaying) return;
+
+    if (smashCdTimer > 0) {
+        smashCdTimer = Math.max(0, smashCdTimer - dt);
+        updateSkillHUD();
+    }
+    if (myInvulnTimer > 0) {
+        myInvulnTimer = Math.max(0, myInvulnTimer - dt);
+    }
+    if (rivalInvulnTimer > 0) {
+        rivalInvulnTimer = Math.max(0, rivalInvulnTimer - dt);
+        avatar.armorMat.opacity = (Math.floor(rivalInvulnTimer * 10) % 2 === 0) ? 0.35 : 0.85;
+    } else {
+        avatar.armorMat.opacity = 1.0;
+    }
+
+    if (flashBlindOpacity > 0) {
+        flashBlindOpacity = Math.max(0, flashBlindOpacity - dt * 0.85);
+        document.getElementById('flash-overlay').style.opacity = Math.min(1.0, flashBlindOpacity);
+    }
 
     _v1.set(0, 0, 0);
     if (keys['KeyW']) _v1.z -= 1;
@@ -1515,18 +1790,20 @@ function updatePlayer(dt) {
     if (keys['KeyD']) _v1.x += 1;
     _v1.normalize();
 
-    const speed = keys['ShiftLeft'] || keys['ShiftRight'] ? player.dashSpeed : player.walkSpeed;
+    const speed = (keys['ShiftLeft'] || keys['ShiftRight']) ? player.dashSpeed : player.walkSpeed;
 
     _v2.copy(_v1).applyAxisAngle(new THREE.Vector3(0, 1, 0), yaw);
-    player.pos.x += _v2.x * speed * dt;
-    player.pos.z += _v2.z * speed * dt;
+    player.pos.x += (_v2.x * speed + player.knockVel.x) * dt;
+    player.pos.z += (_v2.z * speed + player.knockVel.z) * dt;
+
+    player.knockVel.multiplyScalar(Math.max(0, 1.0 - dt * 6.5));
 
     if (keys['Space'] && player.onGround) {
         player.vel.y = player.jumpPower;
         player.onGround = false;
     }
     if (!player.onGround) {
-        player.vel.y -= 20.0 * dt;
+        player.vel.y -= 19.5 * dt;
         player.pos.y += player.vel.y * dt;
         if (player.pos.y <= 1.7) {
             player.pos.y = 1.7;
@@ -1553,6 +1830,32 @@ function updatePlayer(dt) {
     }
 }
 
+function updateSkillHUD() {
+    const smashBox = document.getElementById('hud-smash-box');
+    const smashStat = document.getElementById('hud-smash-status');
+    if (smashCdTimer > 0) {
+        smashBox.className = 'skill-box cooldown';
+        smashStat.innerText = `${smashCdTimer.toFixed(1)}s`;
+        smashStat.style.color = '#f59e0b';
+    } else {
+        smashBox.className = 'skill-box ready';
+        smashStat.innerText = 'READY';
+        smashStat.style.color = '#00f0ff';
+    }
+
+    const flashBox = document.getElementById('hud-flash-box');
+    const flashStat = document.getElementById('hud-flash-status');
+    if (flashCharges > 0) {
+        flashBox.className = 'skill-box ready';
+        flashStat.innerText = `READY (${flashCharges}/1)`;
+        flashStat.style.color = '#00f0ff';
+    } else {
+        flashBox.className = 'skill-box cooldown';
+        flashStat.innerText = 'EMPTY (0/1)';
+        flashStat.style.color = '#94a3b8';
+    }
+}
+
 function updateScoreUI() {
     document.getElementById('score-p1').innerText = scoreP1;
     document.getElementById('score-p2').innerText = scoreP2;
@@ -1570,43 +1873,12 @@ function showBanner(text, color = '#ffffff') {
     bannerTimeout = setTimeout(() => {
         el.style.opacity = '0';
         el.style.transform = 'translate(-50%, -50%) scale(1.0)';
-    }, 1600);
+    }, 1500);
 }
 
-function setCpuDifficulty(diffKey) {
-    if (!CPU_CONFIGS[diffKey]) diffKey = 'normal';
-    settings.cpuDifficulty = diffKey;
-    saveSettings();
-
-    const cfg = CPU_CONFIGS[diffKey];
-
-    const badgeMenu = document.getElementById('diff-badge-menu');
-    badgeMenu.className = `diff-badge ${cfg.badgeClass}`;
-    badgeMenu.innerText = cfg.badge;
-    document.getElementById('diff-desc-menu').innerText = cfg.desc;
-
-    document.querySelectorAll('#diff-group-menu .btn-diff').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-diff') === diffKey);
-    });
-
-    const badgeSettings = document.getElementById('diff-badge-settings');
-    badgeSettings.className = `diff-badge ${cfg.badgeClass}`;
-    badgeSettings.innerText = cfg.badge;
-    document.getElementById('diff-desc-settings').innerText = cfg.desc;
-
-    document.querySelectorAll('#diff-group-settings .btn-diff').forEach(b => {
-        b.classList.toggle('active', b.getAttribute('data-diff') === diffKey);
-    });
-
-    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MENU) {
-        const p2Label = document.getElementById('p2-label');
-        p2Label.innerText = cfg.hudLabel;
-        p2Label.style.color = cfg.hudColor;
-    }
-
-    updateAvatarColors(diffKey);
-}
-
+/* ==========================================================================
+   MULTIPLAYER P2P (PeerJS) & HOST SETTINGS AUTO-SYNC
+   ========================================================================== */
 let peer = null;
 let conn = null;
 
@@ -1637,6 +1909,23 @@ function initPeerAsGuest(hostRoomId) {
     } catch(e) {}
 }
 
+function sendHostSettings() {
+    sendNetEvent({
+        type: 'HOST_SETTINGS',
+        rules: {
+            pushY: settings.pushY,
+            pushZ: settings.pushZ,
+            gravity: settings.gravity,
+            pushX: settings.pushX,
+            smashPower: settings.smashPower,
+            smashCooldown: settings.smashCooldown,
+            hitInvulnTime: settings.hitInvulnTime,
+            knockbackPower: settings.knockbackPower,
+            splitRallyCount: settings.splitRallyCount
+        }
+    });
+}
+
 function setupP2PConnection(isHost) {
     conn.on('open', () => {
         currentMode = isHost ? GAME_MODE.MP_HOST : GAME_MODE.MP_GUEST;
@@ -1648,6 +1937,7 @@ function setupP2PConnection(isHost) {
             document.getElementById('p2-label').style.color = "#ff0077";
             player.pos.set(0, 1.7, 8.0);
             yaw = 0;
+            sendHostSettings();
         } else {
             document.getElementById('p1-label').innerText = "HOST (1P)";
             document.getElementById('p2-label').innerText = "YOU (2P)";
@@ -1666,60 +1956,93 @@ function setupP2PConnection(isHost) {
         }
     });
 
-    conn.on('data', (data) => {
-        handleNetData(data);
-    });
-
+    conn.on('data', (data) => { handleNetData(data); });
     conn.on('close', () => {
         alert("対戦相手の接続が切断されました。");
-        location.reload();
+        window.location.href = window.location.pathname;
     });
 }
 
 function sendNetEvent(payload) {
-    if (conn && conn.open) {
-        conn.send(payload);
-    }
+    if (conn && conn.open) conn.send(payload);
 }
 
 function handleNetData(data) {
     if (data.type === 'SYNC') {
         avatar.group.position.set(data.pos.x, data.pos.y - 1.7, data.pos.z);
-        // Face towards net properly
         avatar.group.rotation.y = data.rot + Math.PI;
 
         if (currentMode === GAME_MODE.MP_GUEST) {
-            ball.mesh.position.set(data.ball.x, data.ball.y, data.ball.z);
-            ball.vel.set(data.ballVel.x, data.ballVel.y, data.ballVel.z);
-            ball.isAlive = data.ballAlive;
+            for (let i = 0; i < 2; i++) {
+                const bData = data.balls[i];
+                const b = balls[i];
+                b.isAlive = bData.alive;
+                b.mesh.visible = bData.alive;
+                if (bData.alive) {
+                    b.mesh.position.set(bData.x, bData.y, bData.z);
+                    b.vel.set(bData.vx, bData.vy, bData.vz);
+                }
+            }
             scoreP1 = data.s1;
             scoreP2 = data.s2;
             rallyCount = data.rally;
             updateScoreUI();
             updateBallVisuals();
         }
+    } else if (data.type === 'HOST_SETTINGS') {
+        Object.assign(settings, data.rules);
+        syncSettingsDisplay();
+        showBanner('⚙️ HOST RULES SYNCED', '#00f0ff');
     } else if (data.type === 'SHOOT') {
+        const targetPos = (data.hitBallIdx !== -1) ? balls[data.hitBallIdx].mesh.position : player.pos;
         fireLaserTracer(
             new THREE.Vector3(data.origin.x, data.origin.y, data.origin.z),
-            ball.mesh.position,
-            isHostPerspective ? 0xff0077 : 0x00f0ff
+            targetPos,
+            data.isSmash ? 0xf59e0b : (isHostPerspective ? 0xff0077 : 0x00f0ff)
         );
-        audio.playShot();
+        audio.playShot(data.isSmash);
 
-        // CRITICAL FIX: When 2P (Guest) hits the ball, apply the new velocity on 1P (Host)!
-        if (data.hit) {
-            audio.playBallHit(true);
+        if (data.hitBallIdx !== -1 && data.vel) {
+            const b = balls[data.hitBallIdx];
+            audio.playBallHit(data.isSmash);
             lastTouchBy = isHostPerspective ? 2 : 1;
 
-            if (isHostPerspective && data.vel) {
-                ball.vel.set(data.vel.x, data.vel.y, data.vel.z);
+            if (isHostPerspective) {
+                b.vel.set(data.vel.x, data.vel.y, data.vel.z);
                 rallyCount++;
                 updateScoreUI();
-                showBanner(`RIVAL HIT! RALLY ${rallyCount}`, '#ff0077');
+                showBanner(data.isSmash ? `⚡ RIVAL SMASH!!` : `RIVAL HIT! RALLY ${rallyCount}`, '#ff0077');
+                if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
+                    triggerMultiBallSplit(b);
+                }
             }
         }
+        if (data.hitOpponent && data.knockVec && myInvulnTimer <= 0) {
+            myInvulnTimer = settings.hitInvulnTime;
+            player.knockVel.set(data.knockVec.x, 0, data.knockVec.z);
+            audio.playKnockback();
+            showBanner('⚠️ HIT BY RIVAL! KNOCKBACK!', '#ef4444');
+        }
+    } else if (data.type === 'SPLIT_BALL') {
+        const b2 = balls[1];
+        b2.isAlive = true;
+        b2.mesh.visible = true;
+        b2.groundShadow.visible = true;
+        b2.mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
+        balls[0].vel.set(data.v1.x, data.v1.y, data.v1.z);
+        b2.vel.set(data.v2.x, data.v2.y, data.v2.z);
+        showBanner('⚠️ MULTI-BALL SPLIT!! (2個モード突入)', '#ff0077');
+        audio.playWhistle(false);
+    } else if (data.type === 'FLASH_CAST') {
+        spawnFlashOrb(data.pos, data.vel);
     } else if (data.type === 'SERVE_ALERT') {
         audio.playWhistle(false);
+        flashCharges = 1;
+        smashCdTimer = 0;
+        balls[1].isAlive = false;
+        balls[1].mesh.visible = false;
+        balls[1].groundShadow.visible = false;
+        updateSkillHUD();
         showBanner("SERVE INBOUND", "#00f0ff");
     } else if (data.type === 'POINT_SCORED') {
         scoreP1 = data.s1;
@@ -1729,13 +2052,13 @@ function handleNetData(data) {
             endMatch();
         }
     } else if (data.type === 'REMATCH') {
-        scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
-        updateScoreUI();
-        document.getElementById('gameover-modal').style.display = 'none';
-        isPlaying = true;
+        executeRematch(false);
     }
 }
 
+/* ==========================================================================
+   MAIN GAME LOOP
+   ========================================================================== */
 let lastTime = performance.now();
 
 function animate(now) {
@@ -1745,18 +2068,23 @@ function animate(now) {
 
     if (isPlaying) {
         updatePlayer(dt);
+        updateFlashOrb(dt);
 
         if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) {
             updateBallPhysics(dt);
             if (currentMode === GAME_MODE.SOLO) {
                 updateAIRival(dt);
             }
-        } else if (currentMode === GAME_MODE.MP_GUEST && ball.isAlive) {
-            // Client-side smooth prediction between host sync packets
-            ball.vel.y -= settings.gravity * dt;
-            ball.mesh.position.x += ball.vel.x * dt;
-            ball.mesh.position.y = Math.max(ball.radius, ball.mesh.position.y + ball.vel.y * dt);
-            ball.mesh.position.z += ball.vel.z * dt;
+        } else if (currentMode === GAME_MODE.MP_GUEST) {
+            for (let i = 0; i < 2; i++) {
+                const b = balls[i];
+                if (b.isAlive) {
+                    b.vel.y -= settings.gravity * dt;
+                    b.mesh.position.x += b.vel.x * dt;
+                    b.mesh.position.y = Math.max(BALL_RADIUS, b.mesh.position.y + b.vel.y * dt);
+                    b.mesh.position.z += b.vel.z * dt;
+                }
+            }
             updateBallVisuals();
         }
 
@@ -1765,9 +2093,11 @@ function animate(now) {
                 type: 'SYNC',
                 pos: { x: player.pos.x, y: player.pos.y, z: player.pos.z },
                 rot: yaw,
-                ball: { x: ball.mesh.position.x, y: ball.mesh.position.y, z: ball.mesh.position.z },
-                ballVel: { x: ball.vel.x, y: ball.vel.y, z: ball.vel.z },
-                ballAlive: ball.isAlive,
+                balls: balls.map(b => ({
+                    alive: b.isAlive,
+                    x: b.mesh.position.x, y: b.mesh.position.y, z: b.mesh.position.z,
+                    vx: b.vel.x, vy: b.vel.y, vz: b.vel.z
+                })),
                 s1: scoreP1,
                 s2: scoreP2,
                 rally: rallyCount
@@ -1779,60 +2109,86 @@ function animate(now) {
 }
 requestAnimationFrame(animate);
 
+/* ==========================================================================
+   UI CONTROLLERS, TABS & PAUSE / SETTINGS MENUS
+   ========================================================================== */
+document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+        btn.classList.add('active');
+        document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
+    });
+});
+
+function setCpuDifficulty(diffKey) {
+    if (!CPU_CONFIGS[diffKey]) diffKey = 'normal';
+    settings.cpuDifficulty = diffKey;
+    saveSettings();
+
+    const cfg = CPU_CONFIGS[diffKey];
+
+    ['menu', 'settings'].forEach(suffix => {
+        const badge = document.getElementById(`diff-badge-${suffix}`);
+        badge.className = `diff-badge ${cfg.badgeClass}`;
+        badge.innerText = cfg.badge;
+        document.getElementById(`diff-desc-${suffix}`).innerText = cfg.desc;
+        document.querySelectorAll(`#diff-group-${suffix} .btn-diff`).forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-diff') === diffKey);
+        });
+    });
+
+    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MENU) {
+        const p2Label = document.getElementById('p2-label');
+        p2Label.innerText = cfg.hudLabel;
+        p2Label.style.color = cfg.hudColor;
+    }
+    updateAvatarColors(diffKey);
+}
+
 function syncSettingsDisplay() {
-    document.getElementById('slider-pushY').value = settings.pushY;
-    document.getElementById('val-pushY').innerText = settings.pushY.toFixed(1) + " m/s";
-
-    document.getElementById('slider-pushZ').value = settings.pushZ;
-    document.getElementById('val-pushZ').innerText = settings.pushZ.toFixed(1) + " m/s";
-
-    document.getElementById('slider-gravity').value = settings.gravity;
-    document.getElementById('val-gravity').innerText = settings.gravity.toFixed(1);
-
-    document.getElementById('slider-pushX').value = settings.pushX;
-    document.getElementById('val-pushX').innerText = settings.pushX.toFixed(1);
-
-    document.getElementById('slider-sens').value = settings.sensitivity;
-    document.getElementById('val-sens').innerText = settings.sensitivity.toFixed(1) + "x";
+    const bindSlider = (id, key, unit = '', decimals = 1) => {
+        const slider = document.getElementById(`slider-${id}`);
+        const valEl = document.getElementById(`val-${id}`);
+        if (slider && valEl) {
+            slider.value = settings[key];
+            valEl.innerText = settings[key].toFixed(decimals) + unit;
+        }
+    };
+    bindSlider('smashPower', 'smashPower', 'x', 1);
+    bindSlider('smashCd', 'smashCooldown', ' 秒', 1);
+    bindSlider('invuln', 'hitInvulnTime', ' 秒', 1);
+    bindSlider('knockback', 'knockbackPower', '', 1);
+    bindSlider('splitRally', 'splitRallyCount', ' 回', 0);
+    bindSlider('pushY', 'pushY', ' m/s', 1);
+    bindSlider('pushZ', 'pushZ', ' m/s', 1);
+    bindSlider('gravity', 'gravity', '', 1);
+    bindSlider('pushX', 'pushX', '', 1);
+    bindSlider('sens', 'sensitivity', 'x', 1);
 
     setCpuDifficulty(settings.cpuDifficulty || 'normal');
 }
 
-document.getElementById('slider-pushY').addEventListener('input', (e) => {
-    settings.pushY = parseFloat(e.target.value);
-    document.getElementById('val-pushY').innerText = settings.pushY.toFixed(1) + " m/s";
-    saveSettings();
-});
-document.getElementById('slider-pushZ').addEventListener('input', (e) => {
-    settings.pushZ = parseFloat(e.target.value);
-    document.getElementById('val-pushZ').innerText = settings.pushZ.toFixed(1) + " m/s";
-    saveSettings();
-});
-document.getElementById('slider-gravity').addEventListener('input', (e) => {
-    settings.gravity = parseFloat(e.target.value);
-    document.getElementById('val-gravity').innerText = settings.gravity.toFixed(1);
-    saveSettings();
-});
-document.getElementById('slider-pushX').addEventListener('input', (e) => {
-    settings.pushX = parseFloat(e.target.value);
-    document.getElementById('val-pushX').innerText = settings.pushX.toFixed(1);
-    saveSettings();
-});
-document.getElementById('slider-sens').addEventListener('input', (e) => {
-    settings.sensitivity = parseFloat(e.target.value);
-    document.getElementById('val-sens').innerText = settings.sensitivity.toFixed(1) + "x";
-    saveSettings();
-});
+function setupSliderListener(id, key, unit = '', decimals = 1) {
+    document.getElementById(`slider-${id}`).addEventListener('input', (e) => {
+        settings[key] = parseFloat(e.target.value);
+        document.getElementById(`val-${id}`).innerText = settings[key].toFixed(decimals) + unit;
+        saveSettings();
+    });
+}
+setupSliderListener('smashPower', 'smashPower', 'x', 1);
+setupSliderListener('smashCd', 'smashCooldown', ' 秒', 1);
+setupSliderListener('invuln', 'hitInvulnTime', ' 秒', 1);
+setupSliderListener('knockback', 'knockbackPower', '', 1);
+setupSliderListener('splitRally', 'splitRallyCount', ' 回', 0);
+setupSliderListener('pushY', 'pushY', ' m/s', 1);
+setupSliderListener('pushZ', 'pushZ', ' m/s', 1);
+setupSliderListener('gravity', 'gravity', '', 1);
+setupSliderListener('pushX', 'pushX', '', 1);
+setupSliderListener('sens', 'sensitivity', 'x', 1);
 
-document.querySelectorAll('#diff-group-menu .btn-diff').forEach(btn => {
-    btn.addEventListener('click', () => {
-        setCpuDifficulty(btn.getAttribute('data-diff'));
-    });
-});
-document.querySelectorAll('#diff-group-settings .btn-diff').forEach(btn => {
-    btn.addEventListener('click', () => {
-        setCpuDifficulty(btn.getAttribute('data-diff'));
-    });
+document.querySelectorAll('#diff-group-menu .btn-diff, #diff-group-settings .btn-diff').forEach(btn => {
+    btn.addEventListener('click', () => setCpuDifficulty(btn.getAttribute('data-diff')));
 });
 
 document.getElementById('btn-reset-physics').addEventListener('click', () => {
@@ -1841,21 +2197,63 @@ document.getElementById('btn-reset-physics').addEventListener('click', () => {
     saveSettings();
 });
 
-function toggleSettingsModal() {
-    const modal = document.getElementById('settings-modal');
-    if (modal.style.display === 'flex') {
-        modal.style.display = 'none';
+// Pause & Settings Modals Navigation
+function togglePauseModal() {
+    const pauseEl = document.getElementById('pause-modal');
+    if (pauseEl.style.display === 'flex') {
+        pauseEl.style.display = 'none';
         if (isPlaying) {
             try { renderer.domElement.requestPointerLock(); } catch(e) {}
         }
     } else {
-        modal.style.display = 'flex';
+        pauseEl.style.display = 'flex';
         try { document.exitPointerLock(); } catch(e) {}
     }
 }
-document.getElementById('btn-open-settings').addEventListener('click', toggleSettingsModal);
-document.getElementById('btn-settings-menu').addEventListener('click', toggleSettingsModal);
-document.getElementById('btn-close-settings').addEventListener('click', toggleSettingsModal);
+
+function openSettingsModal() {
+    document.getElementById('pause-modal').style.display = 'none';
+    document.getElementById('settings-modal').style.display = 'flex';
+    try { document.exitPointerLock(); } catch(e) {}
+}
+
+function closeSettingsModal() {
+    document.getElementById('settings-modal').style.display = 'none';
+    if (isPlaying) {
+        try { renderer.domElement.requestPointerLock(); } catch(e) {}
+    }
+}
+
+function executeRematch(notifyPeer = true) {
+    scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
+    flashCharges = 1; smashCdTimer = 0;
+    updateScoreUI();
+    updateSkillHUD();
+    document.getElementById('gameover-modal').style.display = 'none';
+    document.getElementById('pause-modal').style.display = 'none';
+    isPlaying = true;
+    try { renderer.domElement.requestPointerLock(); } catch(e) {}
+
+    if (notifyPeer && (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST)) {
+        sendNetEvent({ type: 'REMATCH' });
+    }
+    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) {
+        setTimeout(() => { launchSafeServe(true); }, 1000);
+    }
+}
+
+function quitToMainMenu() {
+    window.location.href = window.location.pathname;
+}
+
+document.getElementById('btn-open-pause').addEventListener('click', togglePauseModal);
+document.getElementById('btn-resume').addEventListener('click', togglePauseModal);
+document.getElementById('btn-pause-rematch').addEventListener('click', () => executeRematch(true));
+document.getElementById('btn-pause-settings').addEventListener('click', openSettingsModal);
+document.getElementById('btn-pause-quit').addEventListener('click', quitToMainMenu);
+
+document.getElementById('btn-settings-menu').addEventListener('click', openSettingsModal);
+document.getElementById('btn-close-settings').addEventListener('click', closeSettingsModal);
 
 document.getElementById('btn-solo-play').addEventListener('click', () => {
     audio.init();
@@ -1883,30 +2281,13 @@ document.getElementById('btn-host-create').addEventListener('click', () => {
 document.getElementById('btn-copy-link').addEventListener('click', () => {
     const input = document.getElementById('share-link-input');
     input.select();
-    try {
-        navigator.clipboard.writeText(input.value);
-    } catch(e) {}
+    try { navigator.clipboard.writeText(input.value); } catch(e) {}
     document.getElementById('btn-copy-link').innerText = "済!";
     setTimeout(() => { document.getElementById('btn-copy-link').innerText = "コピー"; }, 1500);
 });
 
-document.getElementById('btn-rematch').addEventListener('click', () => {
-    scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
-    updateScoreUI();
-    document.getElementById('gameover-modal').style.display = 'none';
-    isPlaying = true;
-    try { renderer.domElement.requestPointerLock(); } catch(e) {}
-
-    if (currentMode === GAME_MODE.MP_HOST) {
-        sendNetEvent({ type: 'REMATCH' });
-        setTimeout(() => { launchSafeServe(true); }, 1200);
-    } else if (currentMode === GAME_MODE.SOLO) {
-        setTimeout(() => { launchSafeServe(true); }, 1200);
-    }
-});
-document.getElementById('btn-back-menu').addEventListener('click', () => {
-    location.reload();
-});
+document.getElementById('btn-rematch').addEventListener('click', () => executeRematch(true));
+document.getElementById('btn-back-menu').addEventListener('click', quitToMainMenu);
 
 window.addEventListener('DOMContentLoaded', () => {
     syncSettingsDisplay();
