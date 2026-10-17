@@ -676,8 +676,8 @@
                         <span class="param-name">🎯 マウス視点感度 (Aim Sensitivity)</span>
                         <span class="param-val" id="val-sens">1.0x</span>
                     </div>
-                    <div class="param-desc">FPSカメラの回転スピード (個人の設定として保持されます)</div>
-                    <input type="range" id="slider-sens" min="0.2" max="3.0" step="0.1" value="1.0">
+                    <div class="param-desc">FPSカメラの回転スピード (フラッシュ避けの振り向きやすさに直結 / 最大5.0x)</div>
+                    <input type="range" id="slider-sens" min="0.2" max="5.0" step="0.1" value="1.0">
                 </div>
 
                 <div class="diff-container" style="margin-top:14px;">
@@ -715,10 +715,9 @@
 
 <script>
 /* ==========================================================================
-   CYBER VOLLEY FPS - TACTICAL EDITION ENGINE
+   CYBER VOLLEY FPS - TACTICAL EDITION ENGINE (3 BUGS FIXED)
    ========================================================================== */
 
-// Disable context menu so Right-Click Smash works smoothly
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
 const DEFAULT_SETTINGS = {
@@ -756,7 +755,6 @@ function saveSettings() {
     try {
         localStorage.setItem('cyber_volley_tactical_settings', JSON.stringify(settings));
     } catch(e) {}
-    // If connected as Host, broadcast updated rule settings to Guest
     if (currentMode === GAME_MODE.MP_HOST) {
         sendHostSettings();
     }
@@ -792,7 +790,6 @@ let scoreP1 = 0;
 let scoreP2 = 0;
 let rallyCount = 0;
 const MATCH_TARGET = 7;
-let lastTouchBy = 1;
 
 // Cooldowns & Skill States
 let smashCdTimer = 0;
@@ -810,9 +807,26 @@ const COURT_W = 14.0;
 const COURT_D = 24.0;
 const NET_Y = 2.43;
 
-// Dual-Ball Array for Multi-Ball Split Mechanics
+// Dual-Ball Array (Each ball now has its own independent lastTouchBy & hitLockTimer!)
 const balls = [];
 const BALL_RADIUS = 0.42;
+
+/* ==========================================================================
+   HELPER: RAW MOUSE POINTER LOCK (Prevents Mouse Skipping on Fast Flicks)
+   ========================================================================== */
+function requestRawPointerLock() {
+    try {
+        // Request unadjustedMovement (disables OS mouse acceleration that causes skipping during fast flicks)
+        const promise = renderer.domElement.requestPointerLock({ unadjustedMovement: true });
+        if (promise && promise.catch) {
+            promise.catch(() => {
+                try { renderer.domElement.requestPointerLock(); } catch(e) {}
+            });
+        }
+    } catch(e) {
+        try { renderer.domElement.requestPointerLock(); } catch(err) {}
+    }
+}
 
 /* ==========================================================================
    WEB AUDIO SYNTHESIZER
@@ -1039,7 +1053,7 @@ function buildCourtAndArena() {
 }
 buildCourtAndArena();
 
-// --- BUILD DUAL VOLLEYBALLS (For Split Ball Mechanics) ---
+// --- BUILD DUAL VOLLEYBALLS (Each with independent lastTouchBy & hitLockTimer) ---
 function createBallObject(isSecondBall = false) {
     const bCanvas = document.createElement('canvas');
     bCanvas.width = 512; bCanvas.height = 256;
@@ -1071,7 +1085,9 @@ function createBallObject(isSecondBall = false) {
         mesh: mesh,
         groundShadow: shadow,
         vel: new THREE.Vector3(),
-        isAlive: false
+        isAlive: false,
+        lastTouchBy: 1,     // BUG 2 FIX: Independent last touch owner per ball (1 = 1P, 2 = 2P)
+        hitLockTimer: 0     // BUG 1 FIX: Prevents simultaneous conflict hits within 0.15s
     };
 }
 balls.push(createBallObject(false)); // Primary ball (balls[0])
@@ -1235,7 +1251,7 @@ renderer.domElement.addEventListener('click', () => {
     if (isPlaying && !isPointerLocked &&
         document.getElementById('pause-modal').style.display !== 'flex' &&
         document.getElementById('settings-modal').style.display !== 'flex') {
-        try { renderer.domElement.requestPointerLock(); } catch(e) {}
+        requestRawPointerLock();
     }
 });
 
@@ -1243,12 +1259,20 @@ document.addEventListener('pointerlockchange', () => {
     isPointerLocked = (document.pointerLockElement === renderer.domElement);
 });
 
+// BUG 3 FIX: Smooth Mouse Flick Handling (Prevents Browser Pointer Lock Spike / Skipping)
 document.addEventListener('mousemove', (e) => {
     if (!isPointerLocked) return;
-    const factor = 0.002 * settings.sensitivity;
-    yaw -= e.movementX * factor;
-    pitch -= e.movementY * factor;
-    pitch = Math.max(-Math.PI / 2.2, Math.min(Math.PI / 2.2, pitch));
+
+    let dx = e.movementX || 0;
+    let dy = e.movementY || 0;
+
+    // Filter out browser hardware-wraparound spikes (> 450px in single sub-millisecond poll)
+    if (Math.abs(dx) > 450 || Math.abs(dy) > 450) return;
+
+    const factor = 0.0022 * settings.sensitivity;
+    yaw -= dx * factor;
+    pitch -= dy * factor;
+    pitch = Math.max(-Math.PI / 2.15, Math.min(Math.PI / 2.15, pitch));
 });
 
 window.addEventListener('mousedown', (e) => {
@@ -1286,28 +1310,33 @@ function shootAction(wantsSmash) {
     let hitBallIdx = -1;
     let newVel = null;
 
-    // 1. Check hit against active Volleyballs
+    // 1. Check hit against active Volleyballs (Pick closest valid ball)
+    let bestDist = 999;
     for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
-        if (!b.isAlive) continue;
+        if (!b.isAlive || b.hitLockTimer > 0) continue;
 
         _v1.subVectors(b.mesh.position, origin);
         const proj = _v1.dot(_rayDir);
         if (proj > 0 && proj < 35) {
             _v2.copy(origin).addScaledVector(_rayDir, proj);
             const distToLine = _v2.distanceTo(b.mesh.position);
-            if (distToLine < BALL_RADIUS + 0.55) {
-                if (isSmash && b.mesh.position.y < NET_Y - 0.15) {
-                    showBanner('TOO LOW FOR SMASH! (打点が低い)', '#f59e0b');
-                    isSmash = false;
-                }
+            if (distToLine < BALL_RADIUS + 0.55 && distToLine < bestDist) {
+                bestDist = distToLine;
                 hitBallIdx = i;
-                newVel = applyPlayerHitToBall(b, isSmash);
-                if (isSmash) {
-                    smashCdTimer = settings.smashCooldown;
-                }
-                break;
             }
+        }
+    }
+
+    if (hitBallIdx !== -1) {
+        const b = balls[hitBallIdx];
+        if (isSmash && b.mesh.position.y < NET_Y - 0.15) {
+            showBanner('TOO LOW FOR SMASH! (打点が低い)', '#f59e0b');
+            isSmash = false;
+        }
+        newVel = applyPlayerHitToBall(b, isSmash);
+        if (isSmash) {
+            smashCdTimer = settings.smashCooldown;
         }
     }
 
@@ -1359,10 +1388,17 @@ function shootAction(wantsSmash) {
     }
 }
 
+/**
+ * BUG 1 & BUG 2 FIX: Safe Velocity Clamping & Per-Ball LastTouchBy Ownership
+ */
 function applyPlayerHitToBall(b, isSmash) {
     audio.playBallHit(isSmash);
     rallyCount++;
-    lastTouchBy = isHostPerspective ? 1 : 2;
+
+    // Set ownership on THIS specific ball!
+    b.lastTouchBy = isHostPerspective ? 1 : 2;
+    b.hitLockTimer = 0.14; // Lock for 0.14s to prevent simultaneous double-hit conflict
+
     updateScoreUI();
 
     const forwardSign = isHostPerspective ? -1 : 1;
@@ -1371,45 +1407,55 @@ function applyPlayerHitToBall(b, isSmash) {
     let pushX, pushY, pushZ;
 
     if (isSmash) {
-        // SMASH: Scaled by settings.smashPower (0.5x ~ 2.5x)
         showBanner(`⚡ AERIAL SMASH!! (${settings.smashPower.toFixed(1)}x)`, '#f59e0b');
-        const targetZ = forwardSign * (4.5 + Math.max(0, _rayDir.y + 0.3) * 6.0);
+        const targetZ = forwardSign * (4.8 + Math.max(0, _rayDir.y + 0.3) * 5.8);
         const targetX = Math.max(-6.2, Math.min(6.2, b.mesh.position.x + _rayDir.x * 11.0));
-        
-        // Higher smashPower = shorter flight time = faster laser ball speed!
-        const powerMultiplier = Math.max(0.5, settings.smashPower || 1.0);
-        const smashTime = 1.25 / powerMultiplier;
 
-        pushZ = (targetZ - b.mesh.position.z) / smashTime;
-        pushX = (targetX - b.mesh.position.x) / smashTime;
+        const powerMultiplier = Math.max(0.5, Math.min(2.5, settings.smashPower || 1.0));
+        const smashTime = Math.max(0.45, 1.25 / powerMultiplier);
+
+        // Ensure minimum forward velocity so ball never stalls at the net
+        const rawVz = (targetZ - b.mesh.position.z) / smashTime;
+        pushZ = forwardSign * Math.max(6.0, Math.min(35.0, Math.abs(rawVz)));
+        pushX = Math.max(-18.0, Math.min(18.0, (targetX - b.mesh.position.x) / smashTime));
         pushY = (0.5 - b.mesh.position.y + 0.5 * settings.gravity * (smashTime ** 2)) / smashTime;
 
-        // Guarantee net clearance so high-speed smashes skim right over the net tape
-        const tNet = (0 - b.mesh.position.z) / pushZ;
-        if (tNet > 0) {
-            const yAtNet = b.mesh.position.y + pushY * tNet - 0.5 * settings.gravity * (tNet ** 2);
-            if (yAtNet < NET_Y + 0.25) {
-                pushY = (NET_Y + 0.3 - b.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
+        // BUG 1 CRITICAL FIX: Only apply net-clearance boost if ball is on our side BEFORE the net
+        // and tNet is >= 0.15s (prevents division by near-zero when ball is right at Z=0!)
+        const onMySide = isHostPerspective ? (b.mesh.position.z > 0.4) : (b.mesh.position.z < -0.4);
+        if (onMySide) {
+            const tNet = Math.abs(b.mesh.position.z / pushZ);
+            if (tNet >= 0.15) {
+                const yAtNet = b.mesh.position.y + pushY * tNet - 0.5 * settings.gravity * (tNet ** 2);
+                if (yAtNet < NET_Y + 0.25) {
+                    pushY = (NET_Y + 0.3 - b.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
+                }
+            } else if (b.mesh.position.y < NET_Y + 0.3) {
+                // Very close to net: simple gentle hop over the tape
+                pushY = Math.max(pushY, 3.5);
             }
         }
+
+        // Strict vertical velocity clamp so ball NEVER flies into space!
+        pushY = Math.max(-14.0, Math.min(11.5, pushY));
     } else {
         // NORMAL SHOT
         showBanner(`HIT! RALLY ${rallyCount}`, isHostPerspective ? '#00f0ff' : '#ff0077');
         pushZ = forwardSign * Math.max(3.0, settings.pushZ);
         pushX = _rayDir.x * settings.pushX;
         const lowBonus = Math.max(0, (2.0 - b.mesh.position.y) * 0.7);
-        pushY = settings.pushY + lowBonus;
+        pushY = Math.min(14.5, settings.pushY + lowBonus);
     }
 
     b.vel.set(pushX, pushY, pushZ);
 
-    // Check Multi-Ball Split Trigger (Host or Solo controls split)
+    // Check Multi-Ball Split Trigger
     if ((currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) &&
         rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
         triggerMultiBallSplit(b);
     }
 
-    return { x: pushX, y: pushY, z: pushZ };
+    return { x: pushX, y: pushY, z: pushZ, touchBy: b.lastTouchBy };
 }
 
 function triggerMultiBallSplit(sourceBall) {
@@ -1418,7 +1464,11 @@ function triggerMultiBallSplit(sourceBall) {
     b2.mesh.visible = true;
     b2.groundShadow.visible = true;
     b2.mesh.position.copy(sourceBall.mesh.position);
-    b2.vel.set(-sourceBall.vel.x - 2.5, sourceBall.vel.y + 0.8, sourceBall.vel.z);
+    // Inherit the exact touch owner of the ball that split!
+    b2.lastTouchBy = sourceBall.lastTouchBy;
+    b2.hitLockTimer = 0.1;
+
+    b2.vel.set(-sourceBall.vel.x - 2.5, Math.min(11.0, sourceBall.vel.y + 0.6), sourceBall.vel.z);
     sourceBall.vel.x += 2.5;
 
     showBanner('⚠️ MULTI-BALL SPLIT!! (2個モード突入)', '#ff0077');
@@ -1429,7 +1479,8 @@ function triggerMultiBallSplit(sourceBall) {
             type: 'SPLIT_BALL',
             pos: { x: b2.mesh.position.x, y: b2.mesh.position.y, z: b2.mesh.position.z },
             v1: { x: sourceBall.vel.x, y: sourceBall.vel.y, z: sourceBall.vel.z },
-            v2: { x: b2.vel.x, y: b2.vel.y, z: b2.vel.z }
+            v2: { x: b2.vel.x, y: b2.vel.y, z: b2.vel.z },
+            touchBy: b2.lastTouchBy
         });
     }
 }
@@ -1488,12 +1539,13 @@ function detonateFlashOrb() {
     const toOrb = _v1.subVectors(flashOrb.mesh.position, camera.position).normalize();
     const dot = _rayDir.dot(toOrb);
 
-    if (dot > 0.22) {
+    // Turning away (dot <= 0.25) dodges the flash!
+    if (dot > 0.25) {
         flashBlindOpacity = 1.9;
         audio.playFlashPop(true);
         showBanner('😵 BLINDED!! (視界奪取)', '#ffffff');
     } else {
-        flashBlindOpacity = 0.25;
+        flashBlindOpacity = 0.22;
         audio.playFlashPop(false);
         showBanner('😎 FLASH DODGED! (回避成功)', '#00f0ff');
     }
@@ -1510,8 +1562,7 @@ function launchSafeServe(serverIsHost) {
     updateScoreUI();
     updateSkillHUD();
 
-    lastTouchBy = serverIsHost ? 1 : 2;
-
+    const initialOwner = serverIsHost ? 1 : 2;
     const spawnZ = serverIsHost ? (COURT_D / 2 - 2.0) : (-COURT_D / 2 + 2.0);
     const targetZ = serverIsHost ? -6.0 : 6.0;
 
@@ -1519,6 +1570,8 @@ function launchSafeServe(serverIsHost) {
     b0.mesh.position.set(0, 2.2, spawnZ);
     b0.mesh.visible = true;
     b0.groundShadow.visible = true;
+    b0.lastTouchBy = initialOwner;
+    b0.hitLockTimer = 0;
 
     const serveFlightTime = 2.8;
     const serveVz = (targetZ - spawnZ) / serveFlightTime;
@@ -1530,11 +1583,13 @@ function launchSafeServe(serverIsHost) {
     balls[1].isAlive = false;
     balls[1].mesh.visible = false;
     balls[1].groundShadow.visible = false;
+    balls[1].lastTouchBy = initialOwner;
+    balls[1].hitLockTimer = 0;
 
     showBanner("SERVE INBOUND", "#00f0ff");
 
     if (currentMode === GAME_MODE.MP_HOST) {
-        sendNetEvent({ type: 'SERVE_ALERT' });
+        sendNetEvent({ type: 'SERVE_ALERT', serverIsHost: serverIsHost });
     }
 }
 
@@ -1549,9 +1604,12 @@ function updateAIRival(dt) {
         avatar.group.position.z = Math.max(-16.0, Math.min(-0.8, avatar.group.position.z));
     }
 
+    // Pick most urgent incoming ball heading towards AI side
     let targetBall = balls[0];
-    if (balls[1].isAlive && balls[1].mesh.position.z < balls[0].mesh.position.z) {
-        targetBall = balls[1];
+    if (balls[1].isAlive) {
+        if (!balls[0].isAlive || (balls[1].vel.z < 0 && balls[1].mesh.position.z < balls[0].mesh.position.z)) {
+            targetBall = balls[1];
+        }
     }
     if (!targetBall.isAlive) return;
 
@@ -1590,7 +1648,7 @@ function updateAIRival(dt) {
 
     avatar.group.lookAt(targetBall.mesh.position.x, 1.2, targetBall.mesh.position.z);
 
-    if (targetBall.mesh.position.z < -0.4 && targetBall.vel.z < 0) {
+    if (targetBall.mesh.position.z < -0.4 && targetBall.vel.z < 0 && targetBall.hitLockTimer <= 0) {
         const dist = avatar.group.position.distanceTo(targetBall.mesh.position);
         if (dist < cfg.reach && targetBall.mesh.position.y >= cfg.minY && targetBall.mesh.position.y <= cfg.maxY) {
             const isGod = (cfg.id === 'god');
@@ -1603,7 +1661,8 @@ function updateAIRival(dt) {
             fireLaserTracer(muzzle, targetBall.mesh.position, cfg.colorHex);
 
             rallyCount++;
-            lastTouchBy = 2;
+            targetBall.lastTouchBy = 2; // AI owns THIS ball
+            targetBall.hitLockTimer = 0.15;
             updateScoreUI();
 
             let returnX = 0, returnZ = 7.0, flightTime = 2.4;
@@ -1629,13 +1688,14 @@ function updateAIRival(dt) {
             const vx = (returnX - targetBall.mesh.position.x) / flightTime;
             let vy = (1.8 - targetBall.mesh.position.y + 0.5 * settings.gravity * (flightTime ** 2)) / flightTime;
 
-            const tNet = (0 - targetBall.mesh.position.z) / vz;
-            if (tNet > 0) {
+            const tNet = Math.abs(targetBall.mesh.position.z / vz);
+            if (tNet >= 0.15) {
                 const yAtNet = targetBall.mesh.position.y + vy * tNet - 0.5 * settings.gravity * (tNet ** 2);
                 if (yAtNet < NET_Y + 0.35) {
                     vy = (NET_Y + 0.45 - targetBall.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
                 }
             }
+            vy = Math.min(12.5, vy);
             targetBall.vel.set(vx, vy, vz);
 
             if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
@@ -1664,6 +1724,9 @@ function updateBallVisuals() {
 function updateBallPhysics(dt) {
     for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
+        if (b.hitLockTimer > 0) {
+            b.hitLockTimer = Math.max(0, b.hitLockTimer - dt);
+        }
         if (!b.isAlive) continue;
 
         b.vel.y -= settings.gravity * dt;
@@ -1671,34 +1734,47 @@ function updateBallPhysics(dt) {
         b.mesh.position.y += b.vel.y * dt;
         b.mesh.position.z += b.vel.z * dt;
 
+        // Safety Ceiling Clamp: Prevent any physics glitch from ever sending the ball > 18m high
+        if (b.mesh.position.y > 18.0 && b.vel.y > 0) {
+            b.vel.y = -2.0;
+        }
+
+        // Net collision
         if (Math.abs(b.mesh.position.z) < 0.25 && b.mesh.position.y < NET_Y) {
             b.vel.z = -b.vel.z * 0.5;
             b.vel.y = Math.max(2.0, b.vel.y * 0.8);
         }
 
+        // Floor Touch -> Pass THIS specific ball's lastTouchBy!
         if (b.mesh.position.y <= BALL_RADIUS) {
             b.mesh.position.y = BALL_RADIUS;
+            const landedTouchOwner = b.lastTouchBy;
             balls[0].isAlive = false;
             balls[1].isAlive = false;
-            onBallLanded(b.mesh.position.x, b.mesh.position.z);
+            onBallLanded(b.mesh.position.x, b.mesh.position.z, landedTouchOwner);
             break;
         }
     }
     updateBallVisuals();
 }
 
-function onBallLanded(landX, landZ) {
+/**
+ * BUG 2 FIX: Evaluate IN/OUT using the specific landed ball's lastTouchBy owner!
+ */
+function onBallLanded(landX, landZ, ballTouchOwner) {
     const inBounds = Math.abs(landX) <= (COURT_W / 2) && Math.abs(landZ) <= (COURT_D / 2);
 
     let pointFor = 0;
     let isFault = false;
 
     if (inBounds) {
+        // IN: Landed inside court lines -> Whichever side it landed on loses the point!
         isFault = false;
         pointFor = (landZ > 0) ? 2 : 1;
     } else {
+        // OUT: Landed outside court lines -> The player who last touched THIS specific ball loses the point!
         isFault = true;
-        pointFor = (lastTouchBy === 1) ? 2 : 1;
+        pointFor = (ballTouchOwner === 1) ? 2 : 1;
     }
 
     if (pointFor === 1) scoreP1++;
@@ -1949,7 +2025,7 @@ function setupP2PConnection(isHost) {
         document.getElementById('menu-modal').style.display = 'none';
         document.getElementById('hud').style.display = 'block';
         isPlaying = true;
-        try { renderer.domElement.requestPointerLock(); } catch(e) {}
+        requestRawPointerLock();
 
         if (isHost) {
             setTimeout(() => { launchSafeServe(true); }, 1500);
@@ -1978,6 +2054,7 @@ function handleNetData(data) {
                 const b = balls[i];
                 b.isAlive = bData.alive;
                 b.mesh.visible = bData.alive;
+                b.lastTouchBy = bData.touchBy;
                 if (bData.alive) {
                     b.mesh.position.set(bData.x, bData.y, bData.z);
                     b.vel.set(bData.vx, bData.vy, bData.vz);
@@ -2005,16 +2082,22 @@ function handleNetData(data) {
         if (data.hitBallIdx !== -1 && data.vel) {
             const b = balls[data.hitBallIdx];
             audio.playBallHit(data.isSmash);
-            lastTouchBy = isHostPerspective ? 2 : 1;
 
-            if (isHostPerspective) {
-                b.vel.set(data.vel.x, data.vel.y, data.vel.z);
+            // BUG 1 & 2 FIX: Ignore conflicting remote packet if Host JUST hit the exact same ball <0.14s ago
+            if (isHostPerspective && b.hitLockTimer <= 0) {
+                b.lastTouchBy = 2; // Guest (2P) now owns this specific ball
+                b.hitLockTimer = 0.14;
+                // Clamp incoming velocity for safety
+                const safeVy = Math.max(-14.0, Math.min(14.5, data.vel.y));
+                b.vel.set(data.vel.x, safeVy, data.vel.z);
                 rallyCount++;
                 updateScoreUI();
                 showBanner(data.isSmash ? `⚡ RIVAL SMASH!!` : `RIVAL HIT! RALLY ${rallyCount}`, '#ff0077');
                 if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
                     triggerMultiBallSplit(b);
                 }
+            } else if (!isHostPerspective) {
+                b.lastTouchBy = 1; // Host (1P) owns this specific ball
             }
         }
         if (data.hitOpponent && data.knockVec && myInvulnTimer <= 0) {
@@ -2029,6 +2112,7 @@ function handleNetData(data) {
         b2.mesh.visible = true;
         b2.groundShadow.visible = true;
         b2.mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
+        b2.lastTouchBy = data.touchBy || balls[0].lastTouchBy;
         balls[0].vel.set(data.v1.x, data.v1.y, data.v1.z);
         b2.vel.set(data.v2.x, data.v2.y, data.v2.z);
         showBanner('⚠️ MULTI-BALL SPLIT!! (2個モード突入)', '#ff0077');
@@ -2039,9 +2123,12 @@ function handleNetData(data) {
         audio.playWhistle(false);
         flashCharges = 1;
         smashCdTimer = 0;
+        const owner = data.serverIsHost ? 1 : 2;
+        balls[0].lastTouchBy = owner;
         balls[1].isAlive = false;
         balls[1].mesh.visible = false;
         balls[1].groundShadow.visible = false;
+        balls[1].lastTouchBy = owner;
         updateSkillHUD();
         showBanner("SERVE INBOUND", "#00f0ff");
     } else if (data.type === 'POINT_SCORED') {
@@ -2078,6 +2165,7 @@ function animate(now) {
         } else if (currentMode === GAME_MODE.MP_GUEST) {
             for (let i = 0; i < 2; i++) {
                 const b = balls[i];
+                if (b.hitLockTimer > 0) b.hitLockTimer = Math.max(0, b.hitLockTimer - dt);
                 if (b.isAlive) {
                     b.vel.y -= settings.gravity * dt;
                     b.mesh.position.x += b.vel.x * dt;
@@ -2095,6 +2183,7 @@ function animate(now) {
                 rot: yaw,
                 balls: balls.map(b => ({
                     alive: b.isAlive,
+                    touchBy: b.lastTouchBy,
                     x: b.mesh.position.x, y: b.mesh.position.y, z: b.mesh.position.z,
                     vx: b.vel.x, vy: b.vel.y, vz: b.vel.z
                 })),
@@ -2202,9 +2291,7 @@ function togglePauseModal() {
     const pauseEl = document.getElementById('pause-modal');
     if (pauseEl.style.display === 'flex') {
         pauseEl.style.display = 'none';
-        if (isPlaying) {
-            try { renderer.domElement.requestPointerLock(); } catch(e) {}
-        }
+        if (isPlaying) requestRawPointerLock();
     } else {
         pauseEl.style.display = 'flex';
         try { document.exitPointerLock(); } catch(e) {}
@@ -2219,9 +2306,7 @@ function openSettingsModal() {
 
 function closeSettingsModal() {
     document.getElementById('settings-modal').style.display = 'none';
-    if (isPlaying) {
-        try { renderer.domElement.requestPointerLock(); } catch(e) {}
-    }
+    if (isPlaying) requestRawPointerLock();
 }
 
 function executeRematch(notifyPeer = true) {
@@ -2232,7 +2317,7 @@ function executeRematch(notifyPeer = true) {
     document.getElementById('gameover-modal').style.display = 'none';
     document.getElementById('pause-modal').style.display = 'none';
     isPlaying = true;
-    try { renderer.domElement.requestPointerLock(); } catch(e) {}
+    requestRawPointerLock();
 
     if (notifyPeer && (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST)) {
         sendNetEvent({ type: 'REMATCH' });
@@ -2268,7 +2353,7 @@ document.getElementById('btn-solo-play').addEventListener('click', () => {
     document.getElementById('menu-modal').style.display = 'none';
     document.getElementById('hud').style.display = 'block';
     isPlaying = true;
-    try { renderer.domElement.requestPointerLock(); } catch(e) {}
+    requestRawPointerLock();
 
     setTimeout(() => { launchSafeServe(false); }, 1200);
 });
