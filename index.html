@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER VOLLEY FPS - TACTICAL EDITION</title>
+    <title>CYBER VOLLEY FPS - 2v2 DOUBLES & LOBBY EDITION</title>
     <!-- Three.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <!-- PeerJS -->
@@ -163,24 +163,9 @@
             border-color: rgba(255, 255, 255, 0.15);
             opacity: 0.6;
         }
-        .skill-key {
-            font-size: 10px;
-            font-weight: 900;
-            color: #94a3b8;
-            letter-spacing: 1px;
-        }
-        .skill-name {
-            font-size: 14px;
-            font-weight: 900;
-            color: #ffffff;
-            margin-top: 2px;
-        }
-        .skill-status {
-            font-size: 11px;
-            font-weight: 800;
-            color: #00f0ff;
-            margin-top: 2px;
-        }
+        .skill-key { font-size: 10px; font-weight: 900; color: #94a3b8; letter-spacing: 1px; }
+        .skill-name { font-size: 14px; font-weight: 900; color: #ffffff; margin-top: 2px; }
+        .skill-status { font-size: 11px; font-weight: 800; color: #00f0ff; margin-top: 2px; }
 
         /* Bottom Controls button */
         .hud-bottom-right {
@@ -247,11 +232,14 @@
             background: linear-gradient(145deg, rgba(17, 28, 48, 0.96), rgba(11, 19, 34, 0.98));
             border: 1px solid rgba(0, 240, 255, 0.45);
             border-radius: 20px;
-            padding: 30px 34px;
-            max-width: 520px;
+            padding: 28px 32px;
+            max-width: 540px;
             width: 100%;
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.2);
             text-align: center;
+        }
+        .lobby-card {
+            max-width: 720px;
         }
         h1.title {
             font-size: 30px;
@@ -285,9 +273,15 @@
             box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
             transition: all 0.2s;
         }
-        .btn-main:hover {
+        .btn-main:hover:not(:disabled) {
             transform: translateY(-2px);
             box-shadow: 0 6px 22px rgba(0, 240, 255, 0.6);
+        }
+        .btn-main:disabled {
+            background: #334155;
+            color: #94a3b8;
+            box-shadow: none;
+            cursor: not-allowed;
         }
         .btn-sub {
             background: rgba(255, 255, 255, 0.08);
@@ -313,6 +307,125 @@
             background: rgba(239, 68, 68, 0.35);
             border-color: #ef4444;
             color: #ffffff;
+        }
+
+        /* LOBBY STYLES */
+        .lobby-top-bar {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+        .name-box {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(0, 0, 0, 0.35);
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            flex: 1;
+        }
+        .name-box label {
+            font-size: 11px;
+            color: #94a3b8;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        .teams-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+        .team-column {
+            background: rgba(10, 18, 32, 0.8);
+            border-radius: 14px;
+            padding: 14px;
+            text-align: left;
+        }
+        .team-cyan-col {
+            border: 1px solid rgba(0, 240, 255, 0.45);
+            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.08);
+        }
+        .team-magenta-col {
+            border: 1px solid rgba(255, 0, 119, 0.45);
+            box-shadow: inset 0 0 20px rgba(255, 0, 119, 0.08);
+        }
+        .team-col-header {
+            font-size: 13px;
+            font-weight: 900;
+            letter-spacing: 1px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .slot-card {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px;
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            min-height: 48px;
+        }
+        .slot-card.occupied {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        .slot-card.is-me {
+            border-color: #00f0ff;
+            background: rgba(0, 240, 255, 0.15);
+        }
+        .slot-player-name {
+            font-size: 14px;
+            font-weight: 800;
+            color: #ffffff;
+        }
+        .slot-tag {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(0, 240, 255, 0.2);
+            color: #00f0ff;
+            margin-left: 6px;
+            font-weight: 900;
+        }
+        .btn-slot-join {
+            background: rgba(0, 240, 255, 0.2);
+            border: 1px solid #00f0ff;
+            color: #00f0ff;
+            padding: 5px 12px;
+            border-radius: 6px;
+            font-size: 11px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+        .btn-slot-join:hover {
+            background: #00f0ff;
+            color: #050811;
+        }
+
+        .rules-summary-box {
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 10px;
+            font-size: 11px;
+            color: #cbd5e1;
+        }
+        .rule-chip span {
+            color: #00f0ff;
+            font-weight: 800;
         }
 
         /* CPU Difficulty Component */
@@ -353,23 +466,23 @@
         .btn-diff.active[data-diff="god"] { background: rgba(239, 68, 68, 0.3); border-color: #ef4444; color: #ef4444; }
         .diff-desc { font-size: 11px; color: #64748b; }
 
-        /* Multiplayer */
+        /* Multiplayer Invite Input */
         .mp-box {
             background: rgba(0, 0, 0, 0.4);
             border: 1px dashed rgba(0, 240, 255, 0.45);
-            border-radius: 14px;
-            padding: 14px;
-            margin-top: 12px;
+            border-radius: 12px;
+            padding: 10px 14px;
+            margin-bottom: 14px;
             text-align: left;
         }
-        .mp-box label { font-size: 11px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 6px; }
+        .mp-box label { font-size: 11px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 5px; }
         .input-row { display: flex; gap: 8px; }
         .input-text {
             flex: 1;
             background: rgba(10, 18, 32, 0.95);
             border: 1px solid rgba(0, 240, 255, 0.4);
             border-radius: 8px;
-            padding: 8px 12px;
+            padding: 7px 12px;
             color: #00f0ff;
             font-size: 13px;
             outline: none;
@@ -378,7 +491,7 @@
             background: #00f0ff;
             color: #050811;
             border: none;
-            padding: 8px 14px;
+            padding: 7px 14px;
             border-radius: 8px;
             font-weight: bold;
             font-size: 12px;
@@ -420,7 +533,7 @@
             max-height: 88vh;
             overflow-y: auto;
         }
-        .param-row { margin-bottom: 13px; }
+        .param-row { margin-bottom: 12px; }
         .param-header {
             display: flex;
             justify-content: space-between;
@@ -448,7 +561,7 @@
             gap: 10px;
             font-size: 11px;
             color: #94a3b8;
-            margin-top: 16px;
+            margin-top: 14px;
             background: rgba(0, 0, 0, 0.25);
             padding: 10px;
             border-radius: 10px;
@@ -465,12 +578,12 @@
     <div id="hud">
         <div class="hud-top">
             <div class="score-block">
-                <span class="score-label" id="p1-label">YOU (1P)</span>
+                <span class="score-label" id="p1-label">TEAM CYAN</span>
                 <span class="score-val cyan-text" id="score-p1">0</span>
             </div>
             <div class="vs-divider">VS</div>
             <div class="score-block">
-                <span class="score-label" id="p2-label">CPU (NORMAL)</span>
+                <span class="score-label" id="p2-label">TEAM MAGENTA</span>
                 <span class="score-val magenta-text" id="score-p2">0</span>
             </div>
             <div class="rally-counter">
@@ -510,43 +623,31 @@
     <div id="menu-modal" class="modal-screen">
         <div class="menu-card">
             <h1 class="title">CYBER VOLLEY FPS</h1>
-            <p class="subtitle">スマッシュ・妨害ノックバック・閃光弾搭載 タクティカルバレー</p>
+            <p class="subtitle">1v1 / 2v2 ダブルス・カスタムロビー・タクティカルバレー</p>
 
             <div class="diff-container">
                 <div class="diff-header">
-                    <span class="diff-title">🤖 CPU 難易度設定</span>
+                    <span class="diff-title">🤖 ソロ練習用 CPU 難易度</span>
                     <span class="diff-badge badge-normal" id="diff-badge-menu">NORMAL</span>
                 </div>
                 <div class="diff-btn-group" id="diff-group-menu">
-                    <button class="btn-diff active" data-diff="normal">普通</button>
-                    <button class="btn-diff" data-diff="hard">強い</button>
-                    <button class="btn-diff" data-diff="god">無敵</button>
+                    <button type="button" class="btn-diff active" data-diff="normal">普通</button>
+                    <button type="button" class="btn-diff" data-diff="hard">強い</button>
+                    <button type="button" class="btn-diff" data-diff="god">無敵</button>
                 </div>
                 <div class="diff-desc" id="diff-desc-menu">適度なラリーが楽しめる標準難易度</div>
             </div>
 
             <div class="btn-group">
-                <button class="btn-main" id="btn-solo-play">🤖 ソロ練習を開始 (vs AI)</button>
-                <button class="btn-sub" id="btn-host-create">🌐 友達と対戦 (P2Pルーム発行)</button>
-            </div>
-
-            <div class="mp-box" id="mp-info-box" style="display:none;">
-                <label>友達招待用URL (クリックでコピー):</label>
-                <div class="input-row">
-                    <input type="text" id="share-link-input" class="input-text" readonly>
-                    <button class="btn-copy" id="btn-copy-link">コピー</button>
-                </div>
-                <p id="peer-status-text" style="font-size:11px; color:#00f0ff; margin-top:8px;">相手の参加を待機しています...</p>
-            </div>
-
-            <div class="btn-group" style="margin-top:12px;">
-                <button class="btn-sub" id="btn-settings-menu">⚙️ カスタムルール＆物理・感度設定</button>
+                <button type="button" class="btn-main" id="btn-solo-play">🤖 ソロ練習を開始 (vs AI)</button>
+                <button type="button" class="btn-sub" id="btn-host-create" style="border-color:#00f0ff; color:#00f0ff;">🌐 マルチプレイロビーを作成 (最大4人 / 2v2対応)</button>
+                <button type="button" class="btn-sub" id="btn-settings-menu">⚙️ カスタムルール＆物理・感度設定</button>
             </div>
 
             <div class="controls-hint">
                 <span>[WASD] 移動</span>
                 <span>[SPACE] ジャンプ</span>
-                <span>[左クリック] 通常ショット / 相手妨害</span>
+                <span>[左クリック] 通常トス / 敵妨害</span>
                 <span>[空中+右クリック] スマッシュ</span>
                 <span>[E] フラッシュ</span>
                 <span>[ESC] ポーズ</span>
@@ -554,42 +655,117 @@
         </div>
     </div>
 
-    <!-- 2. ESC PAUSE MENU MODAL (During Match) -->
+    <!-- 2. MULTIPLAYER LOBBY MODAL (Up to 4 Players / Team Select & Rules) -->
+    <div id="lobby-modal" class="modal-screen" style="display:none;">
+        <div class="menu-card lobby-card">
+            <h1 class="title" style="font-size:26px;">MULTIPLAYER LOBBY</h1>
+            <p class="subtitle" id="lobby-status-sub">チームを選んで準備してください（1v1 / 2v2 / 1v2 対応）</p>
+
+            <!-- Invite URL Box -->
+            <div class="mp-box">
+                <label>🔗 友達招待用URL (最大3人の友達に共有してロビーに招待):</label>
+                <div class="input-row">
+                    <input type="text" id="share-link-input" class="input-text" readonly>
+                    <button type="button" class="btn-copy" id="btn-copy-link">URLコピー</button>
+                </div>
+            </div>
+
+            <!-- Player Name Input -->
+            <div class="lobby-top-bar">
+                <div class="name-box">
+                    <label>👤 あなたの名前:</label>
+                    <input type="text" id="player-name-input" class="input-text" maxlength="12" value="Player">
+                </div>
+            </div>
+
+            <!-- 2v2 Team Slots Grid -->
+            <div class="teams-grid">
+                <!-- TEAM CYAN (Slots 0 & 1) -->
+                <div class="team-column team-cyan-col">
+                    <div class="team-col-header cyan-text">
+                        <span>🟦 TEAM CYAN (手前コート)</span>
+                        <span id="cyan-count-label">0/2</span>
+                    </div>
+                    <div id="slot-box-0" class="slot-card"></div>
+                    <div id="slot-box-1" class="slot-card"></div>
+                </div>
+
+                <!-- TEAM MAGENTA (Slots 2 & 3) -->
+                <div class="team-column team-magenta-col">
+                    <div class="team-col-header magenta-text">
+                        <span>🟥 TEAM MAGENTA (奥コート)</span>
+                        <span id="magenta-count-label">0/2</span>
+                    </div>
+                    <div id="slot-box-2" class="slot-card"></div>
+                    <div id="slot-box-3" class="slot-card"></div>
+                </div>
+            </div>
+
+            <!-- Live Synced Room Rules Summary -->
+            <div class="rules-summary-box">
+                <div class="rule-chip">先取点: <span id="sum-points">7点</span></div>
+                <div class="rule-chip">スマッシュ威力: <span id="sum-smashP">1.0x</span></div>
+                <div class="rule-chip">スマッシュCD: <span id="sum-smashCd">2.0s</span></div>
+                <div class="rule-chip">無敵時間: <span id="sum-invuln">1.5s</span></div>
+                <div class="rule-chip">分裂ラリー: <span id="sum-split">15回</span></div>
+                <div class="rule-chip">打上/推進: <span id="sum-phys">8.2 / 4.5</span></div>
+            </div>
+
+            <!-- Lobby Action Buttons -->
+            <div class="btn-group" style="flex-direction:row;">
+                <button type="button" class="btn-sub btn-danger" id="btn-lobby-leave" style="flex:1;">🚪 ロビー退出</button>
+                <button type="button" class="btn-sub" id="btn-lobby-settings" style="flex:1;">⚙️ ルール＆感度設定</button>
+                <button type="button" class="btn-main" id="btn-lobby-start" style="flex:1.5;">🚀 試合開始 (START)</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 3. ESC PAUSE MENU MODAL (During Match) -->
     <div id="pause-modal" class="modal-screen" style="display:none;">
         <div class="menu-card" style="max-width:420px;">
             <h1 class="title" style="font-size:26px;">PAUSED</h1>
             <p class="subtitle">試合中メニュー</p>
 
             <div class="btn-group">
-                <button class="btn-main" id="btn-resume">▶️ ゲームに戻る (Resume)</button>
-                <button class="btn-sub" id="btn-pause-rematch">🔄 スコアを0-0にして最初からやり直す</button>
-                <button class="btn-sub" id="btn-pause-settings">⚙️ ルール・物理・感度設定を開く</button>
-                <button class="btn-sub btn-danger" id="btn-pause-quit">🚪 メインメニューへ戻る (退出)</button>
+                <button type="button" class="btn-main" id="btn-resume">▶️ ゲームに戻る (Resume)</button>
+                <button type="button" class="btn-sub" id="btn-pause-rematch">🔄 スコアを0-0にして最初からやり直す</button>
+                <button type="button" class="btn-sub" id="btn-pause-lobby" style="display:none; border-color:#00f0ff; color:#00f0ff;">👥 チーム編成ロビーへ戻る (全員)</button>
+                <button type="button" class="btn-sub" id="btn-pause-settings">⚙️ ルール・物理・感度設定を開く</button>
+                <button type="button" class="btn-sub btn-danger" id="btn-pause-quit">🚪 タイトルへ戻る (切断)</button>
             </div>
         </div>
     </div>
 
-    <!-- 3. REDESIGNED TABBED SETTINGS MODAL -->
+    <!-- 4. REDESIGNED TABBED SETTINGS MODAL -->
     <div id="settings-modal" class="modal-screen" style="display:none;">
         <div class="menu-card tuning-card">
             <h1 class="title" style="font-size:24px; margin-bottom:4px;">CUSTOM SETTINGS</h1>
-            <p class="subtitle" style="margin-bottom:12px;">※P2P対戦時はホストの設定がルーム全体に自動同期されます</p>
+            <p class="subtitle" id="settings-sync-note" style="margin-bottom:12px;">※ホストが変更したルール・物理はロビー全員に自動同期されます</p>
 
             <!-- Category Tabs -->
             <div class="settings-tabs">
-                <button class="tab-btn active" data-tab="tab-rules">⚡ スキル＆ルール</button>
-                <button class="tab-btn" data-tab="tab-physics">🏐 ボール物理</button>
-                <button class="tab-btn" data-tab="tab-controls">🎯 感度＆CPU</button>
+                <button type="button" class="tab-btn active" data-tab="tab-rules">⚡ スキル＆ルール</button>
+                <button type="button" class="tab-btn" data-tab="tab-physics">🏐 ボール物理</button>
+                <button type="button" class="tab-btn" data-tab="tab-controls">🎯 感度＆CPU</button>
             </div>
 
             <!-- TAB 1: RULES & SKILLS -->
             <div class="tab-panel active" id="tab-rules">
                 <div class="param-row">
                     <div class="param-header">
+                        <span class="param-name">🏆 マッチ先取点数 (Match Target)</span>
+                        <span class="param-val" id="val-matchTarget">7 点</span>
+                    </div>
+                    <div class="param-desc">何点先取で勝利になるか (標準: 7点)</div>
+                    <input type="range" id="slider-matchTarget" min="3" max="21" step="1" value="7">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
                         <span class="param-name">🔥 スマッシュの球速・威力 (Smash Power)</span>
                         <span class="param-val" id="val-smashPower">1.0x</span>
                     </div>
-                    <div class="param-desc">空中右クリック強打のスピード倍率 (高いほど超高速レーザー弾道になります)</div>
+                    <div class="param-desc">空中右クリック強打のスピード倍率 (高いほど超高速レーザー弾道)</div>
                     <input type="range" id="slider-smashPower" min="0.5" max="2.5" step="0.1" value="1.0">
                 </div>
 
@@ -598,7 +774,7 @@
                         <span class="param-name">⚡ スマッシュ クールダウン (右クリック)</span>
                         <span class="param-val" id="val-smashCd">2.0 秒</span>
                     </div>
-                    <div class="param-desc">空中＋ネットより高い打点で右クリック強打した後の再使用時間 (0秒で連発可)</div>
+                    <div class="param-desc">空中右クリック強打した後の再使用時間 (0秒で連発可)</div>
                     <input type="range" id="slider-smashCd" min="0.0" max="5.0" step="0.5" value="2.0">
                 </div>
 
@@ -607,7 +783,7 @@
                         <span class="param-name">🛡️ 妨害被弾後の無敵時間 (ノックバック)</span>
                         <span class="param-val" id="val-invuln">1.5 秒</span>
                     </div>
-                    <div class="param-desc">相手を撃って吹き飛ばした後、連続で撃たれない保護時間 (0秒でハメ可)</div>
+                    <div class="param-desc">敵に撃たれて吹き飛んだ後、連続で撃たれない保護時間</div>
                     <input type="range" id="slider-invuln" min="0.0" max="3.0" step="0.2" value="1.5">
                 </div>
 
@@ -616,7 +792,7 @@
                         <span class="param-name">💥 妨害ノックバックの強さ</span>
                         <span class="param-val" id="val-knockback">11.0</span>
                     </div>
-                    <div class="param-desc">相手に銃弾を当てた時に後方へ弾き飛ばす威力</div>
+                    <div class="param-desc">敵プレイヤーに銃弾を当てた時に後方へ弾き飛ばす威力</div>
                     <input type="range" id="slider-knockback" min="4.0" max="20.0" step="1.0" value="11.0">
                 </div>
 
@@ -676,7 +852,7 @@
                         <span class="param-name">🎯 マウス視点感度 (Aim Sensitivity)</span>
                         <span class="param-val" id="val-sens">1.0x</span>
                     </div>
-                    <div class="param-desc">FPSカメラの回転スピード (フラッシュ避けの振り向きやすさに直結 / 最大5.0x)</div>
+                    <div class="param-desc">FPSカメラの回転スピード (個人の設定として常に変更可能 / 最大5.0x)</div>
                     <input type="range" id="slider-sens" min="0.2" max="5.0" step="0.1" value="1.0">
                 </div>
 
@@ -686,36 +862,37 @@
                         <span class="diff-badge badge-normal" id="diff-badge-settings">NORMAL</span>
                     </div>
                     <div class="diff-btn-group" id="diff-group-settings">
-                        <button class="btn-diff active" data-diff="normal">普通</button>
-                        <button class="btn-diff" data-diff="hard">強い</button>
-                        <button class="btn-diff" data-diff="god">無敵</button>
+                        <button type="button" class="btn-diff active" data-diff="normal">普通</button>
+                        <button type="button" class="btn-diff" data-diff="hard">強い</button>
+                        <button type="button" class="btn-diff" data-diff="god">無敵</button>
                     </div>
                     <div class="diff-desc" id="diff-desc-settings">適度なラリーが楽しめる標準難易度</div>
                 </div>
             </div>
 
             <div class="btn-group" style="flex-direction:row; margin-top:18px;">
-                <button class="btn-sub" id="btn-reset-physics" style="flex:1;">↺ 初期値に戻す</button>
-                <button class="btn-main" id="btn-close-settings" style="flex:1;">保存して閉じる</button>
+                <button type="button" class="btn-sub" id="btn-reset-physics" style="flex:1;">↺ 初期値に戻す</button>
+                <button type="button" class="btn-main" id="btn-close-settings" style="flex:1;">保存して閉じる</button>
             </div>
         </div>
     </div>
 
-    <!-- 4. GAME OVER MODAL -->
+    <!-- 5. GAME OVER MODAL -->
     <div id="gameover-modal" class="modal-screen" style="display:none;">
         <div class="menu-card">
             <h1 class="title" id="match-winner-title">MATCH FINISHED</h1>
             <p class="subtitle" id="match-winner-sub">スコア結果</p>
             <div class="btn-group">
-                <button class="btn-main" id="btn-rematch">🔄 もう一度対戦する</button>
-                <button class="btn-sub" id="btn-back-menu">🚪 メインメニューへ戻る</button>
+                <button type="button" class="btn-main" id="btn-rematch">🔄 そのままもう一度対戦する</button>
+                <button type="button" class="btn-sub" id="btn-gameover-lobby" style="display:none; border-color:#00f0ff; color:#00f0ff;">👥 ロビーへ戻ってチーム・設定変更</button>
+                <button type="button" class="btn-sub btn-danger" id="btn-back-menu">🚪 タイトルへ戻る</button>
             </div>
         </div>
     </div>
 
 <script>
 /* ==========================================================================
-   CYBER VOLLEY FPS - TACTICAL EDITION ENGINE (3 BUGS FIXED)
+   CYBER VOLLEY FPS - 2v2 DOUBLES & LOBBY ENGINE (STABILIZED)
    ========================================================================== */
 
 window.addEventListener('contextmenu', (e) => e.preventDefault());
@@ -727,38 +904,36 @@ const DEFAULT_SETTINGS = {
     pushX: 8.0,
     sensitivity: 1.0,
     cpuDifficulty: 'normal',
+    matchTarget: 7,
     smashPower: 1.0,
     smashCooldown: 2.0,
     hitInvulnTime: 1.5,
     knockbackPower: 11.0,
-    splitRallyCount: 15
+    splitRallyCount: 15,
+    playerName: 'Player' + Math.floor(100 + Math.random() * 899)
 };
 
 let settings = Object.assign({}, DEFAULT_SETTINGS);
 
 function loadSavedSettings() {
     try {
-        const raw = localStorage.getItem('cyber_volley_tactical_settings');
+        const raw = localStorage.getItem('cyber_volley_doubles_settings');
         if (raw) {
             const parsed = JSON.parse(raw);
             Object.keys(DEFAULT_SETTINGS).forEach(k => {
                 if (parsed[k] !== undefined) {
-                    settings[k] = (typeof DEFAULT_SETTINGS[k] === 'number') ? parseFloat(parsed[k]) : parsed[k];
+                    if (typeof DEFAULT_SETTINGS[k] === 'number') {
+                        const val = parseFloat(parsed[k]);
+                        if (!isNaN(val)) settings[k] = val;
+                    } else {
+                        settings[k] = parsed[k];
+                    }
                 }
             });
         }
     } catch(e) {}
 }
 loadSavedSettings();
-
-function saveSettings() {
-    try {
-        localStorage.setItem('cyber_volley_tactical_settings', JSON.stringify(settings));
-    } catch(e) {}
-    if (currentMode === GAME_MODE.MP_HOST) {
-        sendHostSettings();
-    }
-}
 
 const CPU_CONFIGS = {
     normal: {
@@ -784,18 +959,19 @@ const CPU_CONFIGS = {
 const GAME_MODE = { MENU: 0, SOLO: 1, MP_HOST: 2, MP_GUEST: 3 };
 let currentMode = GAME_MODE.MENU;
 let isPlaying = false;
-let isHostPerspective = true;
+
+let myPeerId = 'local';
+let mySlot = 0;
+let myTeam = 1; // 1 = Cyan (+Z), 2 = Magenta (-Z)
+let lobbySlots = [null, null, null, null];
 
 let scoreP1 = 0;
 let scoreP2 = 0;
 let rallyCount = 0;
-const MATCH_TARGET = 7;
 
-// Cooldowns & Skill States
 let smashCdTimer = 0;
 let flashCharges = 1;
 let myInvulnTimer = 0;
-let rivalInvulnTimer = 0;
 let flashBlindOpacity = 0;
 
 const _v1 = new THREE.Vector3();
@@ -807,24 +983,24 @@ const COURT_W = 14.0;
 const COURT_D = 24.0;
 const NET_Y = 2.43;
 
-// Dual-Ball Array (Each ball now has its own independent lastTouchBy & hitLockTimer!)
 const balls = [];
 const BALL_RADIUS = 0.42;
 
-/* ==========================================================================
-   HELPER: RAW MOUSE POINTER LOCK (Prevents Mouse Skipping on Fast Flicks)
-   ========================================================================== */
-function requestRawPointerLock() {
+function safeRequestPointerLock() {
     try {
-        // Request unadjustedMovement (disables OS mouse acceleration that causes skipping during fast flicks)
-        const promise = renderer.domElement.requestPointerLock({ unadjustedMovement: true });
-        if (promise && promise.catch) {
-            promise.catch(() => {
-                try { renderer.domElement.requestPointerLock(); } catch(e) {}
-            });
+        if (renderer && renderer.domElement && renderer.domElement.requestPointerLock) {
+            renderer.domElement.requestPointerLock();
         }
-    } catch(e) {
-        try { renderer.domElement.requestPointerLock(); } catch(err) {}
+    } catch(e) {}
+}
+
+function saveSettings() {
+    try {
+        localStorage.setItem('cyber_volley_doubles_settings', JSON.stringify(settings));
+    } catch(e) {}
+    updateLobbyRulesSummary();
+    if (currentMode === GAME_MODE.MP_HOST) {
+        broadcastLobbyState();
     }
 }
 
@@ -837,7 +1013,7 @@ class AudioController {
         try {
             if (!this.ctx) {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                this.ctx = new AudioCtx();
+                if (AudioCtx) this.ctx = new AudioCtx();
             }
             if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
         } catch(e) {}
@@ -1019,7 +1195,6 @@ function buildCourtAndArena() {
     rightWall.position.set(25, wallH / 2, 0);
     scene.add(rightWall);
 
-    // Net & Poles
     const poleMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
     const poleL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.4, 12), poleMat);
     poleL.position.set(-COURT_W / 2 - 0.4, 1.7, 0);
@@ -1053,7 +1228,6 @@ function buildCourtAndArena() {
 }
 buildCourtAndArena();
 
-// --- BUILD DUAL VOLLEYBALLS (Each with independent lastTouchBy & hitLockTimer) ---
 function createBallObject(isSecondBall = false) {
     const bCanvas = document.createElement('canvas');
     bCanvas.width = 512; bCanvas.height = 256;
@@ -1086,95 +1260,105 @@ function createBallObject(isSecondBall = false) {
         groundShadow: shadow,
         vel: new THREE.Vector3(),
         isAlive: false,
-        lastTouchBy: 1,     // BUG 2 FIX: Independent last touch owner per ball (1 = 1P, 2 = 2P)
-        hitLockTimer: 0     // BUG 1 FIX: Prevents simultaneous conflict hits within 0.15s
+        lastTouchBy: 1,
+        hitLockTimer: 0
     };
 }
-balls.push(createBallObject(false)); // Primary ball (balls[0])
-balls.push(createBallObject(true));  // Split clone ball (balls[1])
+balls.push(createBallObject(false));
+balls.push(createBallObject(true));
 
-// --- FLASHBANG ORB OBJECT ---
-const flashOrb = {
-    mesh: null,
-    active: false,
-    vel: new THREE.Vector3(),
-    timer: 0
-};
+const flashOrb = { mesh: null, active: false, vel: new THREE.Vector3(), timer: 0 };
 function buildFlashOrb() {
-    const geo = new THREE.SphereGeometry(0.22, 16, 16);
-    const mat = new THREE.MeshBasicMaterial({ color: 0xffffaa });
-    flashOrb.mesh = new THREE.Mesh(geo, mat);
+    flashOrb.mesh = new THREE.Mesh(
+        new THREE.SphereGeometry(0.22, 16, 16),
+        new THREE.MeshBasicMaterial({ color: 0xffffaa })
+    );
     flashOrb.mesh.visible = false;
     scene.add(flashOrb.mesh);
 }
 buildFlashOrb();
 
-// --- CYBORG AVATAR ---
-const avatar = {
-    group: new THREE.Group(),
-    blaster: null,
-    targetMarker: null,
-    visorMat: null,
-    coreMat: null,
-    gunGlowMat: null,
-    armorMat: null,
-    vel: new THREE.Vector3()
-};
+/* ==========================================================================
+   4-PLAYER AVATAR POOL
+   ========================================================================== */
+const slotAvatars = [];
 
-function buildAvatar() {
-    avatar.armorMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc, transparent: true, opacity: 1.0 });
-    avatar.visorMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    avatar.coreMat  = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
-    avatar.gunGlowMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff });
+function createAvatarInstance(slotIndex) {
+    const group = new THREE.Group();
+    const isTeamCyan = (slotIndex < 2);
+    const baseHex = isTeamCyan ? 0x00f0ff : 0xff0055;
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), avatar.armorMat);
-    head.position.y = 1.72; avatar.group.add(head);
+    const armorMat = new THREE.MeshLambertMaterial({ color: 0xf8fafc, transparent: true, opacity: 1.0 });
+    const visorMat = new THREE.MeshBasicMaterial({ color: baseHex });
+    const coreMat  = new THREE.MeshBasicMaterial({ color: baseHex });
+    const gunGlowMat = new THREE.MeshBasicMaterial({ color: baseHex });
 
-    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.22), avatar.visorMat);
-    visor.position.set(0, 1.72, 0.17); avatar.group.add(visor);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), armorMat);
+    head.position.y = 1.72; group.add(head);
 
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.75, 12), avatar.armorMat);
-    torso.position.y = 1.15; avatar.group.add(torso);
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.22), visorMat);
+    visor.position.set(0, 1.72, 0.17); group.add(visor);
 
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), avatar.coreMat);
-    core.position.set(0, 1.25, 0.22); avatar.group.add(core);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.75, 12), armorMat);
+    torso.position.y = 1.15; group.add(torso);
+
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), coreMat);
+    core.position.set(0, 1.25, 0.22); group.add(core);
 
     const shoulderGeo = new THREE.SphereGeometry(0.14, 12, 12);
-    const shoulderL = new THREE.Mesh(shoulderGeo, avatar.armorMat);
-    shoulderL.position.set(-0.38, 1.4, 0); avatar.group.add(shoulderL);
-    const shoulderR = shoulderL.clone(); shoulderR.position.x = 0.38; avatar.group.add(shoulderR);
+    const shoulderL = new THREE.Mesh(shoulderGeo, armorMat);
+    shoulderL.position.set(-0.38, 1.4, 0); group.add(shoulderL);
+    const shoulderR = shoulderL.clone(); shoulderR.position.x = 0.38; group.add(shoulderR);
 
     const armGroup = new THREE.Group();
     armGroup.position.set(0.42, 1.2, 0.1);
-    avatar.blaster = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.55), avatar.armorMat);
-    avatar.blaster.position.z = 0.28;
-    const gunGlow = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.4), avatar.gunGlowMat);
-    gunGlow.position.y = 0.08; avatar.blaster.add(gunGlow);
-    armGroup.add(avatar.blaster); avatar.group.add(armGroup);
+    const blaster = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.55), armorMat);
+    blaster.position.z = 0.28;
+    const gunGlow = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.4), gunGlowMat);
+    gunGlow.position.y = 0.08; blaster.add(gunGlow);
+    armGroup.add(blaster); group.add(armGroup);
 
     const legGeo = new THREE.CylinderGeometry(0.1, 0.08, 0.8, 10);
-    const legL = new THREE.Mesh(legGeo, avatar.armorMat);
-    legL.position.set(-0.16, 0.45, 0); avatar.group.add(legL);
-    const legR = legL.clone(); legR.position.x = 0.16; avatar.group.add(legR);
+    const legL = new THREE.Mesh(legGeo, armorMat);
+    legL.position.set(-0.16, 0.45, 0); group.add(legL);
+    const legR = legL.clone(); legR.position.x = 0.16; group.add(legR);
 
-    avatar.targetMarker = new THREE.Mesh(
+    const targetMarker = new THREE.Mesh(
         new THREE.ConeGeometry(0.18, 0.32, 4),
-        new THREE.MeshBasicMaterial({ color: 0x00f0ff })
+        new THREE.MeshBasicMaterial({ color: baseHex })
     );
-    avatar.targetMarker.rotation.x = Math.PI;
-    avatar.targetMarker.position.set(0, 2.35, 0);
-    avatar.group.add(avatar.targetMarker);
+    targetMarker.rotation.x = Math.PI;
+    targetMarker.position.set(0, 2.35, 0);
+    group.add(targetMarker);
 
-    scene.add(avatar.group);
+    group.visible = false;
+    scene.add(group);
+
+    return {
+        slotIndex: slotIndex,
+        team: isTeamCyan ? 1 : 2,
+        group: group,
+        blaster: blaster,
+        targetMarker: targetMarker,
+        visorMat: visorMat,
+        coreMat: coreMat,
+        gunGlowMat: gunGlowMat,
+        armorMat: armorMat,
+        vel: new THREE.Vector3(),
+        invulnTimer: 0
+    };
 }
-buildAvatar();
 
-function updateAvatarColors(diffKey) {
-    const cfg = CPU_CONFIGS[diffKey] || CPU_CONFIGS.normal;
-    if (avatar.visorMat) avatar.visorMat.color.setHex(cfg.colorHex);
-    if (avatar.coreMat) avatar.coreMat.color.setHex(cfg.colorHex);
-    if (avatar.gunGlowMat) avatar.gunGlowMat.color.setHex(cfg.colorHex);
-    if (avatar.targetMarker) avatar.targetMarker.material.color.setHex(cfg.colorHex);
+for (let i = 0; i < 4; i++) {
+    slotAvatars.push(createAvatarInstance(i));
+}
+
+function setAvatarThemeColor(av, hexColor) {
+    if (!av) return;
+    av.visorMat.color.setHex(hexColor);
+    av.coreMat.color.setHex(hexColor);
+    av.gunGlowMat.color.setHex(hexColor);
+    av.targetMarker.material.color.setHex(hexColor);
 }
 
 // --- VIEWMODEL & TRACER ---
@@ -1251,7 +1435,7 @@ renderer.domElement.addEventListener('click', () => {
     if (isPlaying && !isPointerLocked &&
         document.getElementById('pause-modal').style.display !== 'flex' &&
         document.getElementById('settings-modal').style.display !== 'flex') {
-        requestRawPointerLock();
+        safeRequestPointerLock();
     }
 });
 
@@ -1259,14 +1443,10 @@ document.addEventListener('pointerlockchange', () => {
     isPointerLocked = (document.pointerLockElement === renderer.domElement);
 });
 
-// BUG 3 FIX: Smooth Mouse Flick Handling (Prevents Browser Pointer Lock Spike / Skipping)
 document.addEventListener('mousemove', (e) => {
     if (!isPointerLocked) return;
-
     let dx = e.movementX || 0;
     let dy = e.movementY || 0;
-
-    // Filter out browser hardware-wraparound spikes (> 450px in single sub-millisecond poll)
     if (Math.abs(dx) > 450 || Math.abs(dy) > 450) return;
 
     const factor = 0.0022 * settings.sensitivity;
@@ -1275,15 +1455,19 @@ document.addEventListener('mousemove', (e) => {
     pitch = Math.max(-Math.PI / 2.15, Math.min(Math.PI / 2.15, pitch));
 });
 
+// CRITICAL FIX: Ignore clicks on any UI buttons or modals so starting game doesn't misfire!
 window.addEventListener('mousedown', (e) => {
     if (!isPlaying) return;
-    if (document.getElementById('pause-modal').style.display === 'flex' ||
-        document.getElementById('settings-modal').style.display === 'flex') return;
+    if (e.target && e.target !== renderer.domElement) return;
+    if (document.getElementById('menu-modal').style.display !== 'none' ||
+        document.getElementById('pause-modal').style.display === 'flex' ||
+        document.getElementById('settings-modal').style.display === 'flex' ||
+        document.getElementById('lobby-modal').style.display === 'flex') return;
 
     if (e.button === 0) {
-        shootAction(false); // Left-click: Normal Shot / Opponent Knockback
+        shootAction(false);
     } else if (e.button === 2) {
-        shootAction(true);  // Right-click: Aerial Smash
+        shootAction(true);
     }
 });
 
@@ -1310,7 +1494,6 @@ function shootAction(wantsSmash) {
     let hitBallIdx = -1;
     let newVel = null;
 
-    // 1. Check hit against active Volleyballs (Pick closest valid ball)
     let bestDist = 999;
     for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
@@ -1340,68 +1523,72 @@ function shootAction(wantsSmash) {
         }
     }
 
-    // 2. Check hit against Opponent Avatar (Knockback Interference!)
-    let hitOpponent = false;
+    let hitOpponentSlot = -1;
     let knockVec = null;
-    if (hitBallIdx === -1 && rivalInvulnTimer <= 0) {
-        const avatarCenter = _v1.copy(avatar.group.position).add(new THREE.Vector3(0, 1.1, 0));
-        _v2.subVectors(avatarCenter, origin);
-        const proj = _v2.dot(_rayDir);
-        if (proj > 0 && proj < 40) {
-            _v3.copy(origin).addScaledVector(_rayDir, proj);
-            if (_v3.distanceTo(avatarCenter) < 0.78) {
-                hitOpponent = true;
-                rivalInvulnTimer = settings.hitInvulnTime;
-                audio.playKnockback();
-                showBanner('💥 OPPONENT KNOCKBACK!', '#ff0077');
+    if (hitBallIdx === -1) {
+        for (let s = 0; s < 4; s++) {
+            const av = slotAvatars[s];
+            if (!av.group.visible || av.team === myTeam || av.invulnTimer > 0) continue;
 
-                const pushDirZ = isHostPerspective ? -1 : 1;
-                knockVec = {
-                    x: _rayDir.x * settings.knockbackPower * 0.85,
-                    z: pushDirZ * settings.knockbackPower
-                };
-                if (currentMode === GAME_MODE.SOLO) {
-                    avatar.vel.set(knockVec.x, 0, knockVec.z);
+            const avatarCenter = _v1.copy(av.group.position).add(new THREE.Vector3(0, 1.1, 0));
+            _v2.subVectors(avatarCenter, origin);
+            const proj = _v2.dot(_rayDir);
+            if (proj > 0 && proj < 40) {
+                _v3.copy(origin).addScaledVector(_rayDir, proj);
+                if (_v3.distanceTo(avatarCenter) < 0.78) {
+                    hitOpponentSlot = s;
+                    av.invulnTimer = settings.hitInvulnTime;
+                    audio.playKnockback();
+                    showBanner('💥 ENEMY KNOCKBACK!', '#ff0077');
+
+                    const pushDirZ = (myTeam === 1) ? -1 : 1;
+                    knockVec = {
+                        x: _rayDir.x * settings.knockbackPower * 0.85,
+                        z: pushDirZ * settings.knockbackPower
+                    };
+                    if (currentMode === GAME_MODE.SOLO) {
+                        av.vel.set(knockVec.x, 0, knockVec.z);
+                    }
+                    break;
                 }
             }
         }
     }
 
-    // Tracer visual
     _v3.copy(origin).addScaledVector(_rayDir, 30);
     const muzzlePos = _v1.setFromMatrixPosition(gunViewModel.matrixWorld);
-    const targetPoint = (hitBallIdx !== -1) ? balls[hitBallIdx].mesh.position : (hitOpponent ? avatar.group.position.clone().add(new THREE.Vector3(0, 1.2, 0)) : _v3);
-    const tracerColor = isSmash ? 0xf59e0b : (isHostPerspective ? 0x00f0ff : 0xff0077);
+    let targetPoint = _v3;
+    if (hitBallIdx !== -1) targetPoint = balls[hitBallIdx].mesh.position;
+    else if (hitOpponentSlot !== -1) targetPoint = slotAvatars[hitOpponentSlot].group.position.clone().add(new THREE.Vector3(0, 1.2, 0));
+
+    const tracerColor = isSmash ? 0xf59e0b : (myTeam === 1 ? 0x00f0ff : 0xff0077);
     fireLaserTracer(muzzlePos, targetPoint, tracerColor);
 
-    // Send Network Packet
     if (currentMode === GAME_MODE.MP_GUEST || currentMode === GAME_MODE.MP_HOST) {
         sendNetEvent({
             type: 'SHOOT',
+            shooterSlot: mySlot,
+            shooterTeam: myTeam,
             isSmash: isSmash,
             hitBallIdx: hitBallIdx,
             vel: newVel,
-            hitOpponent: hitOpponent,
+            hitOpponentSlot: hitOpponentSlot,
             knockVec: knockVec,
             origin: { x: origin.x, y: origin.y, z: origin.z }
         });
     }
 }
 
-/**
- * BUG 1 & BUG 2 FIX: Safe Velocity Clamping & Per-Ball LastTouchBy Ownership
- */
 function applyPlayerHitToBall(b, isSmash) {
     audio.playBallHit(isSmash);
     rallyCount++;
 
-    // Set ownership on THIS specific ball!
-    b.lastTouchBy = isHostPerspective ? 1 : 2;
-    b.hitLockTimer = 0.14; // Lock for 0.14s to prevent simultaneous double-hit conflict
+    b.lastTouchBy = myTeam;
+    b.hitLockTimer = 0.14;
 
     updateScoreUI();
 
-    const forwardSign = isHostPerspective ? -1 : 1;
+    const forwardSign = (myTeam === 1) ? -1 : 1;
     camera.getWorldDirection(_rayDir);
 
     let pushX, pushY, pushZ;
@@ -1414,15 +1601,12 @@ function applyPlayerHitToBall(b, isSmash) {
         const powerMultiplier = Math.max(0.5, Math.min(2.5, settings.smashPower || 1.0));
         const smashTime = Math.max(0.45, 1.25 / powerMultiplier);
 
-        // Ensure minimum forward velocity so ball never stalls at the net
         const rawVz = (targetZ - b.mesh.position.z) / smashTime;
         pushZ = forwardSign * Math.max(6.0, Math.min(35.0, Math.abs(rawVz)));
         pushX = Math.max(-18.0, Math.min(18.0, (targetX - b.mesh.position.x) / smashTime));
         pushY = (0.5 - b.mesh.position.y + 0.5 * settings.gravity * (smashTime ** 2)) / smashTime;
 
-        // BUG 1 CRITICAL FIX: Only apply net-clearance boost if ball is on our side BEFORE the net
-        // and tNet is >= 0.15s (prevents division by near-zero when ball is right at Z=0!)
-        const onMySide = isHostPerspective ? (b.mesh.position.z > 0.4) : (b.mesh.position.z < -0.4);
+        const onMySide = (myTeam === 1) ? (b.mesh.position.z > 0.4) : (b.mesh.position.z < -0.4);
         if (onMySide) {
             const tNet = Math.abs(b.mesh.position.z / pushZ);
             if (tNet >= 0.15) {
@@ -1431,16 +1615,12 @@ function applyPlayerHitToBall(b, isSmash) {
                     pushY = (NET_Y + 0.3 - b.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
                 }
             } else if (b.mesh.position.y < NET_Y + 0.3) {
-                // Very close to net: simple gentle hop over the tape
                 pushY = Math.max(pushY, 3.5);
             }
         }
-
-        // Strict vertical velocity clamp so ball NEVER flies into space!
         pushY = Math.max(-14.0, Math.min(11.5, pushY));
     } else {
-        // NORMAL SHOT
-        showBanner(`HIT! RALLY ${rallyCount}`, isHostPerspective ? '#00f0ff' : '#ff0077');
+        showBanner(`HIT! RALLY ${rallyCount}`, myTeam === 1 ? '#00f0ff' : '#ff0077');
         pushZ = forwardSign * Math.max(3.0, settings.pushZ);
         pushX = _rayDir.x * settings.pushX;
         const lowBonus = Math.max(0, (2.0 - b.mesh.position.y) * 0.7);
@@ -1449,7 +1629,6 @@ function applyPlayerHitToBall(b, isSmash) {
 
     b.vel.set(pushX, pushY, pushZ);
 
-    // Check Multi-Ball Split Trigger
     if ((currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) &&
         rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
         triggerMultiBallSplit(b);
@@ -1464,7 +1643,6 @@ function triggerMultiBallSplit(sourceBall) {
     b2.mesh.visible = true;
     b2.groundShadow.visible = true;
     b2.mesh.position.copy(sourceBall.mesh.position);
-    // Inherit the exact touch owner of the ball that split!
     b2.lastTouchBy = sourceBall.lastTouchBy;
     b2.hitLockTimer = 0.1;
 
@@ -1539,7 +1717,6 @@ function detonateFlashOrb() {
     const toOrb = _v1.subVectors(flashOrb.mesh.position, camera.position).normalize();
     const dot = _rayDir.dot(toOrb);
 
-    // Turning away (dot <= 0.25) dodges the flash!
     if (dot > 0.25) {
         flashBlindOpacity = 1.9;
         audio.playFlashPop(true);
@@ -1554,7 +1731,7 @@ function detonateFlashOrb() {
 /* ==========================================================================
    SERVE & BALL PHYSICS
    ========================================================================== */
-function launchSafeServe(serverIsHost) {
+function launchSafeServe(serverIsTeam1) {
     audio.playWhistle(false);
     rallyCount = 0;
     flashCharges = 1;
@@ -1562,9 +1739,9 @@ function launchSafeServe(serverIsHost) {
     updateScoreUI();
     updateSkillHUD();
 
-    const initialOwner = serverIsHost ? 1 : 2;
-    const spawnZ = serverIsHost ? (COURT_D / 2 - 2.0) : (-COURT_D / 2 + 2.0);
-    const targetZ = serverIsHost ? -6.0 : 6.0;
+    const initialOwner = serverIsTeam1 ? 1 : 2;
+    const spawnZ = serverIsTeam1 ? (COURT_D / 2 - 2.0) : (-COURT_D / 2 + 2.0);
+    const targetZ = serverIsTeam1 ? -6.0 : 6.0;
 
     const b0 = balls[0];
     b0.mesh.position.set(0, 2.2, spawnZ);
@@ -1589,22 +1766,24 @@ function launchSafeServe(serverIsHost) {
     showBanner("SERVE INBOUND", "#00f0ff");
 
     if (currentMode === GAME_MODE.MP_HOST) {
-        sendNetEvent({ type: 'SERVE_ALERT', serverIsHost: serverIsHost });
+        sendNetEvent({ type: 'SERVE_ALERT', serverIsTeam1: serverIsTeam1 });
     }
 }
 
 function updateAIRival(dt) {
     if (currentMode !== GAME_MODE.SOLO) return;
 
-    if (avatar.vel.lengthSq() > 0.01) {
-        avatar.group.position.x += avatar.vel.x * dt;
-        avatar.group.position.z += avatar.vel.z * dt;
-        avatar.vel.multiplyScalar(Math.max(0, 1.0 - dt * 6.0));
-        avatar.group.position.x = Math.max(-8.0, Math.min(8.0, avatar.group.position.x));
-        avatar.group.position.z = Math.max(-16.0, Math.min(-0.8, avatar.group.position.z));
+    const aiAvatar = slotAvatars[2];
+    aiAvatar.group.visible = true;
+
+    if (aiAvatar.vel.lengthSq() > 0.01) {
+        aiAvatar.group.position.x += aiAvatar.vel.x * dt;
+        aiAvatar.group.position.z += aiAvatar.vel.z * dt;
+        aiAvatar.vel.multiplyScalar(Math.max(0, 1.0 - dt * 6.0));
+        aiAvatar.group.position.x = Math.max(-8.0, Math.min(8.0, aiAvatar.group.position.x));
+        aiAvatar.group.position.z = Math.max(-16.0, Math.min(-0.8, aiAvatar.group.position.z));
     }
 
-    // Pick most urgent incoming ball heading towards AI side
     let targetBall = balls[0];
     if (balls[1].isAlive) {
         if (!balls[0].isAlive || (balls[1].vel.z < 0 && balls[1].mesh.position.z < balls[0].mesh.position.z)) {
@@ -1639,17 +1818,17 @@ function updateAIRival(dt) {
         targetX = Math.max(-5.5, Math.min(5.5, targetBall.mesh.position.x));
     }
 
-    avatar.group.position.x += (targetX - avatar.group.position.x) * Math.min(1.0, dt * cfg.moveSpeed);
+    aiAvatar.group.position.x += (targetX - aiAvatar.group.position.x) * Math.min(1.0, dt * cfg.moveSpeed);
     if (cfg.canMoveZ) {
-        avatar.group.position.z += (targetZ - avatar.group.position.z) * Math.min(1.0, dt * cfg.moveSpeed);
-    } else if (avatar.vel.lengthSq() <= 0.1) {
-        avatar.group.position.z = cfg.baseZ;
+        aiAvatar.group.position.z += (targetZ - aiAvatar.group.position.z) * Math.min(1.0, dt * cfg.moveSpeed);
+    } else if (aiAvatar.vel.lengthSq() <= 0.1) {
+        aiAvatar.group.position.z = cfg.baseZ;
     }
 
-    avatar.group.lookAt(targetBall.mesh.position.x, 1.2, targetBall.mesh.position.z);
+    aiAvatar.group.lookAt(targetBall.mesh.position.x, 1.2, targetBall.mesh.position.z);
 
     if (targetBall.mesh.position.z < -0.4 && targetBall.vel.z < 0 && targetBall.hitLockTimer <= 0) {
-        const dist = avatar.group.position.distanceTo(targetBall.mesh.position);
+        const dist = aiAvatar.group.position.distanceTo(targetBall.mesh.position);
         if (dist < cfg.reach && targetBall.mesh.position.y >= cfg.minY && targetBall.mesh.position.y <= cfg.maxY) {
             const isGod = (cfg.id === 'god');
             const isHard = (cfg.id === 'hard');
@@ -1657,11 +1836,11 @@ function updateAIRival(dt) {
             audio.playShot(isGod);
             audio.playBallHit(isGod || isHard);
 
-            const muzzle = avatar.blaster.position.clone().add(avatar.group.position);
+            const muzzle = aiAvatar.blaster.position.clone().add(aiAvatar.group.position);
             fireLaserTracer(muzzle, targetBall.mesh.position, cfg.colorHex);
 
             rallyCount++;
-            targetBall.lastTouchBy = 2; // AI owns THIS ball
+            targetBall.lastTouchBy = 2;
             targetBall.hitLockTimer = 0.15;
             updateScoreUI();
 
@@ -1724,9 +1903,7 @@ function updateBallVisuals() {
 function updateBallPhysics(dt) {
     for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
-        if (b.hitLockTimer > 0) {
-            b.hitLockTimer = Math.max(0, b.hitLockTimer - dt);
-        }
+        if (b.hitLockTimer > 0) b.hitLockTimer = Math.max(0, b.hitLockTimer - dt);
         if (!b.isAlive) continue;
 
         b.vel.y -= settings.gravity * dt;
@@ -1734,18 +1911,13 @@ function updateBallPhysics(dt) {
         b.mesh.position.y += b.vel.y * dt;
         b.mesh.position.z += b.vel.z * dt;
 
-        // Safety Ceiling Clamp: Prevent any physics glitch from ever sending the ball > 18m high
-        if (b.mesh.position.y > 18.0 && b.vel.y > 0) {
-            b.vel.y = -2.0;
-        }
+        if (b.mesh.position.y > 18.0 && b.vel.y > 0) b.vel.y = -2.0;
 
-        // Net collision
         if (Math.abs(b.mesh.position.z) < 0.25 && b.mesh.position.y < NET_Y) {
             b.vel.z = -b.vel.z * 0.5;
             b.vel.y = Math.max(2.0, b.vel.y * 0.8);
         }
 
-        // Floor Touch -> Pass THIS specific ball's lastTouchBy!
         if (b.mesh.position.y <= BALL_RADIUS) {
             b.mesh.position.y = BALL_RADIUS;
             const landedTouchOwner = b.lastTouchBy;
@@ -1758,9 +1930,6 @@ function updateBallPhysics(dt) {
     updateBallVisuals();
 }
 
-/**
- * BUG 2 FIX: Evaluate IN/OUT using the specific landed ball's lastTouchBy owner!
- */
 function onBallLanded(landX, landZ, ballTouchOwner) {
     const inBounds = Math.abs(landX) <= (COURT_W / 2) && Math.abs(landZ) <= (COURT_D / 2);
 
@@ -1768,11 +1937,9 @@ function onBallLanded(landX, landZ, ballTouchOwner) {
     let isFault = false;
 
     if (inBounds) {
-        // IN: Landed inside court lines -> Whichever side it landed on loses the point!
         isFault = false;
         pointFor = (landZ > 0) ? 2 : 1;
     } else {
-        // OUT: Landed outside court lines -> The player who last touched THIS specific ball loses the point!
         isFault = true;
         pointFor = (ballTouchOwner === 1) ? 2 : 1;
     }
@@ -1793,7 +1960,8 @@ function onBallLanded(landX, landZ, ballTouchOwner) {
         });
     }
 
-    if (scoreP1 >= MATCH_TARGET || scoreP2 >= MATCH_TARGET) {
+    const targetScore = settings.matchTarget || 7;
+    if (scoreP1 >= targetScore || scoreP2 >= targetScore) {
         endMatch();
     } else {
         setTimeout(() => {
@@ -1808,14 +1976,12 @@ function applyPointPresentation(pointFor, inBounds, isFault) {
     audio.playWhistle(isFault);
     updateScoreUI();
 
-    const myPlayerNum = isHostPerspective ? 1 : 2;
-    const iScored = (pointFor === myPlayerNum);
-
+    const iScored = (pointFor === myTeam);
     let bannerText = '';
     if (inBounds) {
-        bannerText = iScored ? 'IN! POINT SCORED!' : 'IN! RIVAL SCORED!';
+        bannerText = iScored ? 'IN! TEAM POINT SCORED!' : 'IN! ENEMY SCORED!';
     } else {
-        bannerText = iScored ? 'OUT! RIVAL FAULT!' : 'OUT! YOUR FAULT!';
+        bannerText = iScored ? 'OUT! ENEMY FAULT!' : 'OUT! TEAM FAULT!';
     }
     showBanner(bannerText, iScored ? '#00f0ff' : '#ff0077');
 }
@@ -1825,12 +1991,14 @@ function endMatch() {
     try { document.exitPointerLock(); } catch(e) {}
     audio.playCheer();
 
-    const p1Won = scoreP1 >= MATCH_TARGET;
-    const isWinner = (isHostPerspective && p1Won) || (!isHostPerspective && !p1Won);
+    const targetScore = settings.matchTarget || 7;
+    const team1Won = scoreP1 >= targetScore;
+    const isWinner = (myTeam === 1 && team1Won) || (myTeam === 2 && !team1Won);
 
     document.getElementById('match-winner-title').innerText = isWinner ? "VICTORY!" : "DEFEAT";
     document.getElementById('match-winner-title').style.color = isWinner ? "#00f0ff" : "#ef4444";
     document.getElementById('match-winner-sub').innerText = `FINAL SCORE: ${scoreP1} - ${scoreP2}`;
+    document.getElementById('btn-gameover-lobby').style.display = (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST) ? 'block' : 'none';
     document.getElementById('gameover-modal').style.display = 'flex';
 }
 
@@ -1847,11 +2015,18 @@ function updatePlayer(dt) {
     if (myInvulnTimer > 0) {
         myInvulnTimer = Math.max(0, myInvulnTimer - dt);
     }
-    if (rivalInvulnTimer > 0) {
-        rivalInvulnTimer = Math.max(0, rivalInvulnTimer - dt);
-        avatar.armorMat.opacity = (Math.floor(rivalInvulnTimer * 10) % 2 === 0) ? 0.35 : 0.85;
-    } else {
-        avatar.armorMat.opacity = 1.0;
+
+    for (let s = 0; s < 4; s++) {
+        const av = slotAvatars[s];
+        if (av.invulnTimer > 0) {
+            av.invulnTimer = Math.max(0, av.invulnTimer - dt);
+            av.armorMat.opacity = (Math.floor(av.invulnTimer * 10) % 2 === 0) ? 0.35 : 0.85;
+        } else {
+            av.armorMat.opacity = 1.0;
+        }
+        if (av.group.visible && av.targetMarker) {
+            av.targetMarker.rotation.y += dt * 3.0;
+        }
     }
 
     if (flashBlindOpacity > 0) {
@@ -1889,7 +2064,7 @@ function updatePlayer(dt) {
     }
 
     player.pos.x = Math.max(-COURT_W / 2 - 2.5, Math.min(COURT_W / 2 + 2.5, player.pos.x));
-    if (isHostPerspective) {
+    if (myTeam === 1) {
         player.pos.z = Math.max(0.8, Math.min(18.0, player.pos.z));
     } else {
         player.pos.z = Math.max(-18.0, Math.min(-0.8, player.pos.z));
@@ -1953,158 +2128,404 @@ function showBanner(text, color = '#ffffff') {
 }
 
 /* ==========================================================================
-   MULTIPLAYER P2P (PeerJS) & HOST SETTINGS AUTO-SYNC
+   4-PLAYER STAR TOPOLOGY P2P & LOBBY MANAGEMENT
    ========================================================================== */
 let peer = null;
-let conn = null;
+let guestConns = [];
+let hostConn = null;
+
+const slotPositions = [
+    { x: -3.2, y: 1.7, z: 8.0, rot: 0 },
+    { x:  3.2, y: 1.7, z: 8.0, rot: 0 },
+    { x: -3.2, y: 1.7, z: -8.0, rot: Math.PI },
+    { x:  3.2, y: 1.7, z: -8.0, rot: Math.PI }
+];
+
+function getRulesPayload() {
+    return {
+        matchTarget: settings.matchTarget,
+        pushY: settings.pushY,
+        pushZ: settings.pushZ,
+        gravity: settings.gravity,
+        pushX: settings.pushX,
+        smashPower: settings.smashPower,
+        smashCooldown: settings.smashCooldown,
+        hitInvulnTime: settings.hitInvulnTime,
+        knockbackPower: settings.knockbackPower,
+        splitRallyCount: settings.splitRallyCount
+    };
+}
+
+function updateLobbyRulesSummary() {
+    const elPoints = document.getElementById('sum-points');
+    if (!elPoints) return;
+    elPoints.innerText = `${Number(settings.matchTarget || 7)}点`;
+    document.getElementById('sum-smashP').innerText = `${Number(settings.smashPower || 1.0).toFixed(1)}x`;
+    document.getElementById('sum-smashCd').innerText = `${Number(settings.smashCooldown || 2.0).toFixed(1)}s`;
+    document.getElementById('sum-invuln').innerText = `${Number(settings.hitInvulnTime || 1.5).toFixed(1)}s`;
+    document.getElementById('sum-split').innerText = `${Number(settings.splitRallyCount || 15)}回`;
+    document.getElementById('sum-phys').innerText = `${Number(settings.pushY || 8.2).toFixed(1)} / ${Number(settings.pushZ || 4.5).toFixed(1)}`;
+}
+
+function renderLobbySlotsUI() {
+    let cyanCount = 0;
+    let magentaCount = 0;
+
+    for (let i = 0; i < 4; i++) {
+        const box = document.getElementById(`slot-box-${i}`);
+        if (!box) continue;
+        const slotData = lobbySlots[i];
+        if (slotData) {
+            if (i < 2) cyanCount++; else magentaCount++;
+            const isMe = (slotData.peerId === myPeerId);
+            if (isMe) {
+                mySlot = i;
+                myTeam = (i < 2) ? 1 : 2;
+            }
+            box.className = `slot-card occupied ${isMe ? 'is-me' : ''}`;
+            box.innerHTML = `
+                <div>
+                    <span class="slot-player-name">${slotData.name}</span>
+                    ${slotData.isHost ? '<span class="slot-tag">HOST</span>' : ''}
+                    ${isMe ? '<span class="slot-tag" style="background:#00f0ff;color:#050811;">YOU</span>' : ''}
+                </div>
+                <span style="font-size:11px; color:#94a3b8;">Slot ${i + 1}</span>
+            `;
+        } else {
+            box.className = 'slot-card';
+            box.innerHTML = `
+                <span style="font-size:12px; color:#64748b;">空きスロット (Empty)</span>
+                <button type="button" class="btn-slot-join" data-slot="${i}">ここへ移動</button>
+            `;
+            const btn = box.querySelector('.btn-slot-join');
+            if (btn) {
+                btn.addEventListener('click', () => requestSlotMove(i));
+            }
+        }
+    }
+
+    document.getElementById('cyan-count-label').innerText = `${cyanCount}/2`;
+    document.getElementById('magenta-count-label').innerText = `${magentaCount}/2`;
+
+    const startBtn = document.getElementById('btn-lobby-start');
+    if (currentMode === GAME_MODE.MP_HOST) {
+        const canStart = (cyanCount >= 1 && magentaCount >= 1);
+        startBtn.disabled = !canStart;
+        startBtn.innerText = canStart ? '🚀 試合開始 (START MATCH)' : '⚠️ 両チームに1人以上必要です';
+    } else {
+        startBtn.disabled = true;
+        startBtn.innerText = '⏳ ホストの開始を待機中...';
+    }
+}
+
+function requestSlotMove(targetSlot) {
+    if (lobbySlots[targetSlot] !== null) return;
+    if (currentMode === GAME_MODE.MP_HOST) {
+        movePlayerToSlot(myPeerId, targetSlot);
+        broadcastLobbyState();
+    } else if (currentMode === GAME_MODE.MP_GUEST) {
+        sendNetEvent({ type: 'REQ_SLOT', targetSlot: targetSlot });
+    }
+}
+
+function movePlayerToSlot(peerId, targetSlot) {
+    if (targetSlot < 0 || targetSlot > 3 || lobbySlots[targetSlot] !== null) return;
+    let existingPlayer = null;
+    for (let i = 0; i < 4; i++) {
+        if (lobbySlots[i] && lobbySlots[i].peerId === peerId) {
+            existingPlayer = lobbySlots[i];
+            lobbySlots[i] = null;
+            break;
+        }
+    }
+    if (existingPlayer) {
+        lobbySlots[targetSlot] = existingPlayer;
+    }
+    renderLobbySlotsUI();
+}
+
+function broadcastLobbyState() {
+    if (currentMode !== GAME_MODE.MP_HOST) return;
+    renderLobbySlotsUI();
+    sendNetEvent({
+        type: 'LOBBY_STATE',
+        slots: lobbySlots,
+        rules: getRulesPayload()
+    });
+}
 
 function initPeerAsHost() {
+    currentMode = GAME_MODE.MP_HOST;
+    document.getElementById('menu-modal').style.display = 'none';
+    document.getElementById('lobby-modal').style.display = 'flex';
+    document.getElementById('player-name-input').value = settings.playerName;
+    updateLobbyRulesSummary();
+
+    myPeerId = 'host_local';
+    lobbySlots = [
+        { peerId: myPeerId, name: settings.playerName, isHost: true },
+        null, null, null
+    ];
+    renderLobbySlotsUI();
+
     try {
+        if (typeof Peer === 'undefined') {
+            document.getElementById('share-link-input').value = "PeerJSが読み込めませんでした（オフライン）";
+            return;
+        }
         peer = new Peer();
         peer.on('open', (id) => {
+            myPeerId = id;
+            lobbySlots[0].peerId = id;
             const fullUrl = `${window.location.origin}${window.location.pathname}?room=${id}`;
             document.getElementById('share-link-input').value = fullUrl;
-            document.getElementById('mp-info-box').style.display = 'block';
-            document.getElementById('peer-status-text').innerText = "招待URLを友達に共有して接続を待機中...";
+            renderLobbySlotsUI();
         });
+
         peer.on('connection', (c) => {
-            conn = c;
-            setupP2PConnection(true);
+            c.on('open', () => {
+                const prefOrder = [2, 1, 3, 0];
+                let assigned = -1;
+                for (let idx of prefOrder) {
+                    if (lobbySlots[idx] === null) { assigned = idx; break; }
+                }
+                if (assigned === -1) {
+                    c.send({ type: 'ROOM_FULL' });
+                    setTimeout(() => c.close(), 500);
+                    return;
+                }
+                guestConns.push(c);
+                lobbySlots[assigned] = {
+                    peerId: c.peer,
+                    name: 'Guest' + (assigned + 1),
+                    isHost: false
+                };
+                broadcastLobbyState();
+            });
+
+            c.on('data', (data) => { handleNetData(data, c.peer); });
+            c.on('close', () => {
+                guestConns = guestConns.filter(conn => conn !== c);
+                for (let i = 0; i < 4; i++) {
+                    if (lobbySlots[i] && lobbySlots[i].peerId === c.peer) {
+                        lobbySlots[i] = null;
+                    }
+                }
+                broadcastLobbyState();
+                showBanner('⚠️ プレイヤーが退出しました', '#f59e0b');
+            });
         });
     } catch(e) {}
 }
 
 function initPeerAsGuest(hostRoomId) {
+    currentMode = GAME_MODE.MP_GUEST;
+    document.getElementById('menu-modal').style.display = 'none';
+    document.getElementById('lobby-modal').style.display = 'flex';
+    document.getElementById('player-name-input').value = settings.playerName;
+    document.getElementById('share-link-input').value = window.location.href;
+    document.getElementById('lobby-status-sub').innerText = "ホストのロビーに接続中...";
+
     try {
         peer = new Peer();
-        peer.on('open', () => {
-            document.getElementById('peer-status-text').innerText = "ホストに接続中...";
-            conn = peer.connect(hostRoomId);
-            setupP2PConnection(false);
+        peer.on('open', (id) => {
+            myPeerId = id;
+            hostConn = peer.connect(hostRoomId);
+            hostConn.on('open', () => {
+                document.getElementById('lobby-status-sub').innerText = "ロビー接続完了！チームを選択してホストの開始を待ってください";
+                sendNetEvent({ type: 'UPDATE_NAME', name: settings.playerName });
+            });
+            hostConn.on('data', (data) => { handleNetData(data, 'host'); });
+            hostConn.on('close', () => {
+                alert("ホストとの接続が切断されました。");
+                window.location.href = window.location.pathname;
+            });
         });
     } catch(e) {}
 }
 
-function sendHostSettings() {
-    sendNetEvent({
-        type: 'HOST_SETTINGS',
-        rules: {
-            pushY: settings.pushY,
-            pushZ: settings.pushZ,
-            gravity: settings.gravity,
-            pushX: settings.pushX,
-            smashPower: settings.smashPower,
-            smashCooldown: settings.smashCooldown,
-            hitInvulnTime: settings.hitInvulnTime,
-            knockbackPower: settings.knockbackPower,
-            splitRallyCount: settings.splitRallyCount
-        }
-    });
-}
-
-function setupP2PConnection(isHost) {
-    conn.on('open', () => {
-        currentMode = isHost ? GAME_MODE.MP_HOST : GAME_MODE.MP_GUEST;
-        isHostPerspective = isHost;
-
-        if (isHost) {
-            document.getElementById('p1-label').innerText = "YOU (1P)";
-            document.getElementById('p2-label').innerText = "FRIEND (2P)";
-            document.getElementById('p2-label').style.color = "#ff0077";
-            player.pos.set(0, 1.7, 8.0);
-            yaw = 0;
-            sendHostSettings();
-        } else {
-            document.getElementById('p1-label').innerText = "HOST (1P)";
-            document.getElementById('p2-label').innerText = "YOU (2P)";
-            document.getElementById('p2-label').style.color = "#ff0077";
-            player.pos.set(0, 1.7, -8.0);
-            yaw = Math.PI;
-        }
-
-        document.getElementById('menu-modal').style.display = 'none';
-        document.getElementById('hud').style.display = 'block';
-        isPlaying = true;
-        requestRawPointerLock();
-
-        if (isHost) {
-            setTimeout(() => { launchSafeServe(true); }, 1500);
-        }
-    });
-
-    conn.on('data', (data) => { handleNetData(data); });
-    conn.on('close', () => {
-        alert("対戦相手の接続が切断されました。");
-        window.location.href = window.location.pathname;
-    });
-}
-
 function sendNetEvent(payload) {
-    if (conn && conn.open) conn.send(payload);
+    if (currentMode === GAME_MODE.MP_HOST) {
+        guestConns.forEach(c => {
+            if (c && c.open) c.send(payload);
+        });
+    } else if (currentMode === GAME_MODE.MP_GUEST) {
+        if (hostConn && hostConn.open) hostConn.send(payload);
+    }
 }
 
-function handleNetData(data) {
-    if (data.type === 'SYNC') {
-        avatar.group.position.set(data.pos.x, data.pos.y - 1.7, data.pos.z);
-        avatar.group.rotation.y = data.rot + Math.PI;
+function startMultiplayerMatch() {
+    scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
+    flashCharges = 1; smashCdTimer = 0;
+    updateScoreUI();
+    updateSkillHUD();
 
-        if (currentMode === GAME_MODE.MP_GUEST) {
-            for (let i = 0; i < 2; i++) {
-                const bData = data.balls[i];
-                const b = balls[i];
-                b.isAlive = bData.alive;
-                b.mesh.visible = bData.alive;
-                b.lastTouchBy = bData.touchBy;
-                if (bData.alive) {
-                    b.mesh.position.set(bData.x, bData.y, bData.z);
-                    b.vel.set(bData.vx, bData.vy, bData.vz);
-                }
-            }
-            scoreP1 = data.s1;
-            scoreP2 = data.s2;
-            rallyCount = data.rally;
-            updateScoreUI();
-            updateBallVisuals();
+    document.getElementById('lobby-modal').style.display = 'none';
+    document.getElementById('gameover-modal').style.display = 'none';
+    document.getElementById('pause-modal').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('btn-pause-lobby').style.display = 'block';
+
+    document.getElementById('p1-label').innerText = (myTeam === 1) ? "TEAM CYAN (YOU)" : "TEAM CYAN";
+    document.getElementById('p2-label').innerText = (myTeam === 2) ? "TEAM MAGENTA (YOU)" : "TEAM MAGENTA";
+    document.getElementById('p2-label').style.color = "#ff0077";
+
+    const spawnX = (mySlot % 2 === 0) ? -3.2 : 3.2;
+    if (myTeam === 1) {
+        player.pos.set(spawnX, 1.7, 8.0);
+        yaw = 0;
+    } else {
+        player.pos.set(spawnX, 1.7, -8.0);
+        yaw = Math.PI;
+    }
+    pitch = 0;
+
+    for (let s = 0; s < 4; s++) {
+        const av = slotAvatars[s];
+        if (lobbySlots[s] !== null && s !== mySlot) {
+            av.group.visible = true;
+            const isAlly = (av.team === myTeam);
+            setAvatarThemeColor(av, isAlly ? 0x00f0ff : 0xff0055);
+            const sx = (s % 2 === 0) ? -3.2 : 3.2;
+            const sz = (s < 2) ? 8.0 : -8.0;
+            av.group.position.set(sx, 0, sz);
+        } else {
+            av.group.visible = false;
         }
-    } else if (data.type === 'HOST_SETTINGS') {
+    }
+
+    isPlaying = true;
+    safeRequestPointerLock();
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        setTimeout(() => { launchSafeServe(true); }, 1500);
+    }
+}
+
+function returnToLobby(notifyPeers = true) {
+    isPlaying = false;
+    balls[0].isAlive = false; balls[0].mesh.visible = false; balls[0].groundShadow.visible = false;
+    balls[1].isAlive = false; balls[1].mesh.visible = false; balls[1].groundShadow.visible = false;
+    try { document.exitPointerLock(); } catch(e) {}
+
+    document.getElementById('hud').style.display = 'none';
+    document.getElementById('pause-modal').style.display = 'none';
+    document.getElementById('gameover-modal').style.display = 'none';
+    document.getElementById('lobby-modal').style.display = 'flex';
+    renderLobbySlotsUI();
+
+    if (notifyPeers) {
+        sendNetEvent({ type: 'RETURN_TO_LOBBY' });
+    }
+}
+
+function handleNetData(data, senderPeerId) {
+    if (data.type === 'ROOM_FULL') {
+        alert("このロビーは満員（4/4）です。");
+        window.location.href = window.location.pathname;
+        return;
+    }
+
+    if (data.type === 'LOBBY_STATE') {
+        lobbySlots = data.slots;
         Object.assign(settings, data.rules);
         syncSettingsDisplay();
-        showBanner('⚙️ HOST RULES SYNCED', '#00f0ff');
+        updateLobbyRulesSummary();
+        renderLobbySlotsUI();
+    } else if (data.type === 'REQ_SLOT' && currentMode === GAME_MODE.MP_HOST) {
+        movePlayerToSlot(senderPeerId, data.targetSlot);
+        broadcastLobbyState();
+    } else if (data.type === 'UPDATE_NAME' && currentMode === GAME_MODE.MP_HOST) {
+        for (let i = 0; i < 4; i++) {
+            if (lobbySlots[i] && lobbySlots[i].peerId === senderPeerId) {
+                lobbySlots[i].name = (data.name || 'Player').substring(0, 12);
+            }
+        }
+        broadcastLobbyState();
+    } else if (data.type === 'START_MATCH') {
+        lobbySlots = data.slots;
+        Object.assign(settings, data.rules);
+        syncSettingsDisplay();
+        renderLobbySlotsUI();
+        startMultiplayerMatch();
+    } else if (data.type === 'RETURN_TO_LOBBY') {
+        if (currentMode === GAME_MODE.MP_HOST) {
+            sendNetEvent({ type: 'RETURN_TO_LOBBY' });
+        }
+        returnToLobby(false);
+    } else if (data.type === 'CLIENT_POS' && currentMode === GAME_MODE.MP_HOST) {
+        if (data.slot >= 0 && data.slot < 4) {
+            slotPositions[data.slot] = data.pos;
+            const av = slotAvatars[data.slot];
+            av.group.position.set(data.pos.x, data.pos.y - 1.7, data.pos.z);
+            av.group.rotation.y = data.pos.rot + Math.PI;
+        }
+    } else if (data.type === 'WORLD_STATE' && currentMode === GAME_MODE.MP_GUEST) {
+        for (let s = 0; s < 4; s++) {
+            if (s === mySlot || !lobbySlots[s]) continue;
+            const p = data.positions[s];
+            if (p) {
+                const av = slotAvatars[s];
+                av.group.visible = true;
+                av.group.position.set(p.x, p.y - 1.7, p.z);
+                av.group.rotation.y = p.rot + Math.PI;
+            }
+        }
+        for (let i = 0; i < 2; i++) {
+            const bData = data.balls[i];
+            const b = balls[i];
+            b.isAlive = bData.alive;
+            b.mesh.visible = bData.alive;
+            b.lastTouchBy = bData.touchBy;
+            if (bData.alive) {
+                b.mesh.position.set(bData.x, bData.y, bData.z);
+                b.vel.set(bData.vx, bData.vy, bData.vz);
+            }
+        }
+        scoreP1 = data.s1;
+        scoreP2 = data.s2;
+        rallyCount = data.rally;
+        updateScoreUI();
+        updateBallVisuals();
     } else if (data.type === 'SHOOT') {
+        if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') {
+            guestConns.forEach(c => {
+                if (c && c.open && c.peer !== senderPeerId) c.send(data);
+            });
+        }
+
         const targetPos = (data.hitBallIdx !== -1) ? balls[data.hitBallIdx].mesh.position : player.pos;
         fireLaserTracer(
             new THREE.Vector3(data.origin.x, data.origin.y, data.origin.z),
             targetPos,
-            data.isSmash ? 0xf59e0b : (isHostPerspective ? 0xff0077 : 0x00f0ff)
+            data.isSmash ? 0xf59e0b : (data.shooterTeam === 1 ? 0x00f0ff : 0xff0077)
         );
         audio.playShot(data.isSmash);
 
         if (data.hitBallIdx !== -1 && data.vel) {
             const b = balls[data.hitBallIdx];
             audio.playBallHit(data.isSmash);
+            b.lastTouchBy = data.shooterTeam;
 
-            // BUG 1 & 2 FIX: Ignore conflicting remote packet if Host JUST hit the exact same ball <0.14s ago
-            if (isHostPerspective && b.hitLockTimer <= 0) {
-                b.lastTouchBy = 2; // Guest (2P) now owns this specific ball
+            if (currentMode === GAME_MODE.MP_HOST && b.hitLockTimer <= 0) {
                 b.hitLockTimer = 0.14;
-                // Clamp incoming velocity for safety
                 const safeVy = Math.max(-14.0, Math.min(14.5, data.vel.y));
                 b.vel.set(data.vel.x, safeVy, data.vel.z);
                 rallyCount++;
                 updateScoreUI();
-                showBanner(data.isSmash ? `⚡ RIVAL SMASH!!` : `RIVAL HIT! RALLY ${rallyCount}`, '#ff0077');
+                showBanner(data.isSmash ? `⚡ SMASH!! RALLY ${rallyCount}` : `HIT! RALLY ${rallyCount}`, data.shooterTeam === 1 ? '#00f0ff' : '#ff0077');
                 if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
                     triggerMultiBallSplit(b);
                 }
-            } else if (!isHostPerspective) {
-                b.lastTouchBy = 1; // Host (1P) owns this specific ball
             }
         }
-        if (data.hitOpponent && data.knockVec && myInvulnTimer <= 0) {
+        if (data.hitOpponentSlot === mySlot && data.knockVec && myInvulnTimer <= 0) {
             myInvulnTimer = settings.hitInvulnTime;
             player.knockVel.set(data.knockVec.x, 0, data.knockVec.z);
             audio.playKnockback();
-            showBanner('⚠️ HIT BY RIVAL! KNOCKBACK!', '#ef4444');
+            showBanner('⚠️ HIT BY ENEMY! KNOCKBACK!', '#ef4444');
+        } else if (data.hitOpponentSlot !== -1 && data.hitOpponentSlot !== mySlot) {
+            slotAvatars[data.hitOpponentSlot].invulnTimer = settings.hitInvulnTime;
         }
     } else if (data.type === 'SPLIT_BALL') {
         const b2 = balls[1];
@@ -2118,12 +2539,17 @@ function handleNetData(data) {
         showBanner('⚠️ MULTI-BALL SPLIT!! (2個モード突入)', '#ff0077');
         audio.playWhistle(false);
     } else if (data.type === 'FLASH_CAST') {
+        if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') {
+            guestConns.forEach(c => {
+                if (c && c.open && c.peer !== senderPeerId) c.send(data);
+            });
+        }
         spawnFlashOrb(data.pos, data.vel);
     } else if (data.type === 'SERVE_ALERT') {
         audio.playWhistle(false);
         flashCharges = 1;
         smashCdTimer = 0;
-        const owner = data.serverIsHost ? 1 : 2;
+        const owner = data.serverIsTeam1 ? 1 : 2;
         balls[0].lastTouchBy = owner;
         balls[1].isAlive = false;
         balls[1].mesh.visible = false;
@@ -2135,10 +2561,14 @@ function handleNetData(data) {
         scoreP1 = data.s1;
         scoreP2 = data.s2;
         applyPointPresentation(data.pointFor, data.inBounds, data.isFault);
-        if (scoreP1 >= MATCH_TARGET || scoreP2 >= MATCH_TARGET) {
+        const targetScore = settings.matchTarget || 7;
+        if (scoreP1 >= targetScore || scoreP2 >= targetScore) {
             endMatch();
         }
     } else if (data.type === 'REMATCH') {
+        if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') {
+            sendNetEvent({ type: 'REMATCH' });
+        }
         executeRematch(false);
     }
 }
@@ -2176,11 +2606,11 @@ function animate(now) {
             updateBallVisuals();
         }
 
-        if (conn && conn.open) {
+        if (currentMode === GAME_MODE.MP_HOST) {
+            slotPositions[mySlot] = { x: player.pos.x, y: player.pos.y, z: player.pos.z, rot: yaw };
             sendNetEvent({
-                type: 'SYNC',
-                pos: { x: player.pos.x, y: player.pos.y, z: player.pos.z },
-                rot: yaw,
+                type: 'WORLD_STATE',
+                positions: slotPositions,
                 balls: balls.map(b => ({
                     alive: b.isAlive,
                     touchBy: b.lastTouchBy,
@@ -2191,6 +2621,12 @@ function animate(now) {
                 s2: scoreP2,
                 rally: rallyCount
             });
+        } else if (currentMode === GAME_MODE.MP_GUEST) {
+            sendNetEvent({
+                type: 'CLIENT_POS',
+                slot: mySlot,
+                pos: { x: player.pos.x, y: player.pos.y, z: player.pos.z, rot: yaw }
+            });
         }
     }
 
@@ -2199,7 +2635,7 @@ function animate(now) {
 requestAnimationFrame(animate);
 
 /* ==========================================================================
-   UI CONTROLLERS, TABS & PAUSE / SETTINGS MENUS
+   UI CONTROLLERS, TABS & LOBBY / SETTINGS MENUS
    ========================================================================== */
 document.querySelectorAll('.tab-btn').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -2219,9 +2655,12 @@ function setCpuDifficulty(diffKey) {
 
     ['menu', 'settings'].forEach(suffix => {
         const badge = document.getElementById(`diff-badge-${suffix}`);
-        badge.className = `diff-badge ${cfg.badgeClass}`;
-        badge.innerText = cfg.badge;
-        document.getElementById(`diff-desc-${suffix}`).innerText = cfg.desc;
+        if (badge) {
+            badge.className = `diff-badge ${cfg.badgeClass}`;
+            badge.innerText = cfg.badge;
+        }
+        const desc = document.getElementById(`diff-desc-${suffix}`);
+        if (desc) desc.innerText = cfg.desc;
         document.querySelectorAll(`#diff-group-${suffix} .btn-diff`).forEach(b => {
             b.classList.toggle('active', b.getAttribute('data-diff') === diffKey);
         });
@@ -2229,21 +2668,24 @@ function setCpuDifficulty(diffKey) {
 
     if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MENU) {
         const p2Label = document.getElementById('p2-label');
-        p2Label.innerText = cfg.hudLabel;
-        p2Label.style.color = cfg.hudColor;
+        if (p2Label) {
+            p2Label.innerText = cfg.hudLabel;
+            p2Label.style.color = cfg.hudColor;
+        }
+        setAvatarThemeColor(slotAvatars[2], cfg.colorHex);
     }
-    updateAvatarColors(diffKey);
 }
 
 function syncSettingsDisplay() {
     const bindSlider = (id, key, unit = '', decimals = 1) => {
         const slider = document.getElementById(`slider-${id}`);
         const valEl = document.getElementById(`val-${id}`);
-        if (slider && valEl) {
+        if (slider && valEl && settings[key] !== undefined) {
             slider.value = settings[key];
-            valEl.innerText = settings[key].toFixed(decimals) + unit;
+            valEl.innerText = Number(settings[key]).toFixed(decimals) + unit;
         }
     };
+    bindSlider('matchTarget', 'matchTarget', ' 点', 0);
     bindSlider('smashPower', 'smashPower', 'x', 1);
     bindSlider('smashCd', 'smashCooldown', ' 秒', 1);
     bindSlider('invuln', 'hitInvulnTime', ' 秒', 1);
@@ -2256,15 +2698,23 @@ function syncSettingsDisplay() {
     bindSlider('sens', 'sensitivity', 'x', 1);
 
     setCpuDifficulty(settings.cpuDifficulty || 'normal');
+    updateLobbyRulesSummary();
 }
 
 function setupSliderListener(id, key, unit = '', decimals = 1) {
-    document.getElementById(`slider-${id}`).addEventListener('input', (e) => {
+    const el = document.getElementById(`slider-${id}`);
+    if (!el) return;
+    el.addEventListener('input', (e) => {
+        if (currentMode === GAME_MODE.MP_GUEST && key !== 'sensitivity') {
+            syncSettingsDisplay();
+            return;
+        }
         settings[key] = parseFloat(e.target.value);
         document.getElementById(`val-${id}`).innerText = settings[key].toFixed(decimals) + unit;
         saveSettings();
     });
 }
+setupSliderListener('matchTarget', 'matchTarget', ' 点', 0);
 setupSliderListener('smashPower', 'smashPower', 'x', 1);
 setupSliderListener('smashCd', 'smashCooldown', ' 秒', 1);
 setupSliderListener('invuln', 'hitInvulnTime', ' 秒', 1);
@@ -2281,17 +2731,34 @@ document.querySelectorAll('#diff-group-menu .btn-diff, #diff-group-settings .btn
 });
 
 document.getElementById('btn-reset-physics').addEventListener('click', () => {
-    settings = Object.assign({}, DEFAULT_SETTINGS);
+    if (currentMode === GAME_MODE.MP_GUEST) return;
+    const savedName = settings.playerName;
+    settings = Object.assign({}, DEFAULT_SETTINGS, { playerName: savedName });
     syncSettingsDisplay();
     saveSettings();
 });
 
-// Pause & Settings Modals Navigation
+document.getElementById('player-name-input').addEventListener('input', (e) => {
+    const newName = (e.target.value || 'Player').substring(0, 12);
+    settings.playerName = newName;
+    saveSettings();
+    if (currentMode === GAME_MODE.MP_HOST) {
+        for (let i = 0; i < 4; i++) {
+            if (lobbySlots[i] && lobbySlots[i].peerId === myPeerId) {
+                lobbySlots[i].name = newName;
+            }
+        }
+        broadcastLobbyState();
+    } else if (currentMode === GAME_MODE.MP_GUEST) {
+        sendNetEvent({ type: 'UPDATE_NAME', name: newName });
+    }
+});
+
 function togglePauseModal() {
     const pauseEl = document.getElementById('pause-modal');
     if (pauseEl.style.display === 'flex') {
         pauseEl.style.display = 'none';
-        if (isPlaying) requestRawPointerLock();
+        if (isPlaying) safeRequestPointerLock();
     } else {
         pauseEl.style.display = 'flex';
         try { document.exitPointerLock(); } catch(e) {}
@@ -2301,12 +2768,16 @@ function togglePauseModal() {
 function openSettingsModal() {
     document.getElementById('pause-modal').style.display = 'none';
     document.getElementById('settings-modal').style.display = 'flex';
+    const isGuest = (currentMode === GAME_MODE.MP_GUEST);
+    document.getElementById('settings-sync-note').innerText = isGuest
+        ? "※ゲスト参加中は「マウス視点感度」のみ変更可能です（ルールはホストに準拠）"
+        : "※ホストが変更したルール・物理はロビー全員に自動同期されます";
     try { document.exitPointerLock(); } catch(e) {}
 }
 
 function closeSettingsModal() {
     document.getElementById('settings-modal').style.display = 'none';
-    if (isPlaying) requestRawPointerLock();
+    if (isPlaying) safeRequestPointerLock();
 }
 
 function executeRematch(notifyPeer = true) {
@@ -2317,7 +2788,7 @@ function executeRematch(notifyPeer = true) {
     document.getElementById('gameover-modal').style.display = 'none';
     document.getElementById('pause-modal').style.display = 'none';
     isPlaying = true;
-    requestRawPointerLock();
+    safeRequestPointerLock();
 
     if (notifyPeer && (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST)) {
         sendNetEvent({ type: 'REMATCH' });
@@ -2328,37 +2799,65 @@ function executeRematch(notifyPeer = true) {
 }
 
 function quitToMainMenu() {
-    window.location.href = window.location.pathname;
+    if (window.location.search) {
+        window.location.href = window.location.pathname;
+    } else {
+        window.location.reload();
+    }
 }
 
 document.getElementById('btn-open-pause').addEventListener('click', togglePauseModal);
 document.getElementById('btn-resume').addEventListener('click', togglePauseModal);
 document.getElementById('btn-pause-rematch').addEventListener('click', () => executeRematch(true));
+document.getElementById('btn-pause-lobby').addEventListener('click', () => returnToLobby(true));
 document.getElementById('btn-pause-settings').addEventListener('click', openSettingsModal);
 document.getElementById('btn-pause-quit').addEventListener('click', quitToMainMenu);
 
 document.getElementById('btn-settings-menu').addEventListener('click', openSettingsModal);
+document.getElementById('btn-lobby-settings').addEventListener('click', openSettingsModal);
 document.getElementById('btn-close-settings').addEventListener('click', closeSettingsModal);
 
-document.getElementById('btn-solo-play').addEventListener('click', () => {
+document.getElementById('btn-lobby-leave').addEventListener('click', quitToMainMenu);
+document.getElementById('btn-lobby-start').addEventListener('click', () => {
+    if (currentMode !== GAME_MODE.MP_HOST) return;
+    sendNetEvent({
+        type: 'START_MATCH',
+        slots: lobbySlots,
+        rules: getRulesPayload()
+    });
+    startMultiplayerMatch();
+});
+
+// Start Solo Mode (Immediate & Reliable Execution)
+document.getElementById('btn-solo-play').addEventListener('click', (e) => {
+    e.stopPropagation();
     audio.init();
     currentMode = GAME_MODE.SOLO;
-    isHostPerspective = true;
+    mySlot = 0;
+    myTeam = 1;
     scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
     updateScoreUI();
 
+    for (let s = 0; s < 4; s++) {
+        slotAvatars[s].group.visible = (s === 2);
+    }
+    player.pos.set(0, 1.7, 8.0);
+    yaw = 0; pitch = 0;
+
     document.getElementById('p1-label').innerText = "YOU (1P)";
     setCpuDifficulty(settings.cpuDifficulty || 'normal');
+    document.getElementById('btn-pause-lobby').style.display = 'none';
 
     document.getElementById('menu-modal').style.display = 'none';
     document.getElementById('hud').style.display = 'block';
     isPlaying = true;
-    requestRawPointerLock();
+    safeRequestPointerLock();
 
-    setTimeout(() => { launchSafeServe(false); }, 1200);
+    setTimeout(() => { launchSafeServe(false); }, 1000);
 });
 
-document.getElementById('btn-host-create').addEventListener('click', () => {
+document.getElementById('btn-host-create').addEventListener('click', (e) => {
+    e.stopPropagation();
     audio.init();
     initPeerAsHost();
 });
@@ -2367,28 +2866,25 @@ document.getElementById('btn-copy-link').addEventListener('click', () => {
     const input = document.getElementById('share-link-input');
     input.select();
     try { navigator.clipboard.writeText(input.value); } catch(e) {}
-    document.getElementById('btn-copy-link').innerText = "済!";
-    setTimeout(() => { document.getElementById('btn-copy-link').innerText = "コピー"; }, 1500);
+    document.getElementById('btn-copy-link').innerText = "コピー済!";
+    setTimeout(() => { document.getElementById('btn-copy-link').innerText = "URLコピー"; }, 1500);
 });
 
 document.getElementById('btn-rematch').addEventListener('click', () => executeRematch(true));
+document.getElementById('btn-gameover-lobby').addEventListener('click', () => returnToLobby(true));
 document.getElementById('btn-back-menu').addEventListener('click', quitToMainMenu);
 
-window.addEventListener('DOMContentLoaded', () => {
+// Immediate Initialization (Does not rely on DOMContentLoaded which might already have fired)
+function initializeApp() {
     syncSettingsDisplay();
-
     const params = new URLSearchParams(window.location.search);
     const room = params.get('room');
     if (room) {
         audio.init();
-        document.getElementById('btn-solo-play').style.display = 'none';
-        document.getElementById('btn-host-create').style.display = 'none';
-        document.querySelector('.diff-container').style.display = 'none';
-        document.getElementById('mp-info-box').style.display = 'block';
-        document.getElementById('share-link-input').value = window.location.href;
         initPeerAsGuest(room);
     }
-});
+}
+initializeApp();
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
