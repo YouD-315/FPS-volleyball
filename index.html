@@ -3,568 +3,237 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CYBER VOLLEY FPS - 2v2 DOUBLES & LOBBY EDITION</title>
-    <!-- Three.js -->
+    <title>CYBER VOLLEY FPS - CHAOS PARTY EDITION</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <!-- PeerJS -->
     <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
     <style>
-        * {
-            box-sizing: border-box;
-            user-select: none;
-            margin: 0;
-            padding: 0;
-        }
+        * { box-sizing: border-box; user-select: none; margin: 0; padding: 0; }
         body, html {
-            width: 100%;
-            height: 100%;
-            overflow: hidden;
+            width: 100%; height: 100%; overflow: hidden;
             background-color: #0c121e;
             font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
             color: #ffffff;
         }
-        #canvas-container {
-            width: 100%;
-            height: 100%;
-            position: absolute;
-            left: 0;
-            top: 0;
-            z-index: 1;
-        }
-
-        /* Flashbang Screen Overlay */
+        #canvas-container { width: 100%; height: 100%; position: absolute; left: 0; top: 0; z-index: 1; }
         #flash-overlay {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background-color: #ffffff;
-            opacity: 0;
-            pointer-events: none;
-            z-index: 50;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background-color: #ffffff; opacity: 0; pointer-events: none; z-index: 50;
         }
 
         /* Crosshair */
         #crosshair {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            width: 32px;
-            height: 32px;
-            pointer-events: none;
-            z-index: 10;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            width: 32px; height: 32px; pointer-events: none; z-index: 10;
         }
         #crosshair::before, #crosshair::after {
-            content: '';
-            position: absolute;
-            background: rgba(0, 240, 255, 0.9);
-            box-shadow: 0 0 8px #00f0ff;
+            content: ''; position: absolute; background: rgba(0, 240, 255, 0.9); box-shadow: 0 0 8px #00f0ff;
         }
         #crosshair::before { top: 15px; left: 0; width: 32px; height: 2px; }
         #crosshair::after { top: 0; left: 15px; width: 2px; height: 32px; }
         #crosshair-dot {
-            position: absolute;
-            top: 14px; left: 14px;
-            width: 4px; height: 4px;
-            background: #ffffff;
-            border-radius: 50%;
-            box-shadow: 0 0 6px #ffffff;
+            position: absolute; top: 14px; left: 14px; width: 4px; height: 4px;
+            background: #ffffff; border-radius: 50%; box-shadow: 0 0 6px #ffffff;
         }
 
-        /* HUD Overlay */
-        #hud {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            pointer-events: none;
-            z-index: 5;
-            display: none;
-        }
+        /* HUD */
+        #hud { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; display: none; }
         .hud-top {
-            position: absolute;
-            top: 20px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            align-items: center;
-            gap: 25px;
-            background: rgba(12, 20, 36, 0.85);
-            border: 1px solid rgba(0, 240, 255, 0.4);
-            border-radius: 30px;
-            padding: 10px 32px;
-            backdrop-filter: blur(10px);
+            position: absolute; top: 14px; left: 50%; transform: translateX(-50%);
+            display: flex; align-items: center; gap: 24px;
+            background: rgba(12, 20, 36, 0.85); border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 30px; padding: 8px 30px; backdrop-filter: blur(10px);
             box-shadow: 0 6px 30px rgba(0, 0, 0, 0.7);
         }
-        .score-block {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        .score-label {
-            font-size: 11px;
-            letter-spacing: 1.5px;
-            color: #94a3b8;
-            font-weight: 800;
-        }
-        .score-val {
-            font-size: 32px;
-            font-weight: 900;
-            line-height: 1.1;
-        }
+        .score-block { display: flex; flex-direction: column; align-items: center; }
+        .score-label { font-size: 11px; letter-spacing: 1.5px; color: #94a3b8; font-weight: 800; }
+        .score-val { font-size: 32px; font-weight: 900; line-height: 1.1; }
         .cyan-text { color: #00f0ff; text-shadow: 0 0 12px rgba(0, 240, 255, 0.8); }
         .magenta-text { color: #ff0077; text-shadow: 0 0 12px rgba(255, 0, 119, 0.8); }
         .vs-divider { font-size: 16px; font-weight: 900; color: #64748b; }
-        .rally-counter {
-            border-left: 1px solid rgba(255, 255, 255, 0.2);
-            padding-left: 20px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
+        .rally-counter { border-left: 1px solid rgba(255, 255, 255, 0.2); padding-left: 20px; display: flex; flex-direction: column; align-items: center; }
 
-        /* Altitude box */
+        #hud-event-pill {
+            position: absolute; top: 82px; left: 50%; transform: translateX(-50%);
+            background: rgba(15, 23, 42, 0.92); border: 2px solid #00f0ff;
+            border-radius: 20px; padding: 5px 20px; display: flex; align-items: center; gap: 10px;
+            box-shadow: 0 0 20px rgba(0, 240, 255, 0.35); transition: all 0.3s;
+        }
+        #hud-event-name { font-size: 13px; font-weight: 900; letter-spacing: 1px; color: #00f0ff; }
+        #hud-event-desc { font-size: 11px; color: #cbd5e1; font-weight: 600; }
+
+        /* Roulette Box */
+        #roulette-box {
+            position: absolute; top: 38%; left: 50%; transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(145deg, rgba(15, 23, 42, 0.96), rgba(9, 14, 28, 0.98));
+            border: 3px solid #f59e0b; border-radius: 22px; padding: 20px 40px; text-align: center;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.9), 0 0 40px rgba(245, 158, 11, 0.5);
+            z-index: 35; display: none; pointer-events: none; min-width: 360px; transition: transform 0.2s;
+        }
+        .roulette-header { font-size: 12px; font-weight: 900; letter-spacing: 3px; color: #f59e0b; margin-bottom: 6px; }
+        #roulette-slot-title { font-size: 32px; font-weight: 900; letter-spacing: 2px; color: #ffffff; text-shadow: 0 0 18px #f59e0b; margin: 6px 0; }
+        #roulette-slot-sub { font-size: 13px; font-weight: 700; color: #cbd5e1; }
+
         .alt-box {
-            position: absolute;
-            left: 25px;
-            top: 25px;
-            background: rgba(12, 20, 36, 0.85);
-            border: 1px solid rgba(0, 240, 255, 0.35);
-            border-radius: 12px;
-            padding: 12px 18px;
-            backdrop-filter: blur(8px);
+            position: absolute; left: 25px; top: 25px;
+            background: rgba(12, 20, 36, 0.85); border: 1px solid rgba(0, 240, 255, 0.35);
+            border-radius: 12px; padding: 12px 18px; backdrop-filter: blur(8px);
         }
         .alt-label { font-size: 10px; color: #94a3b8; letter-spacing: 1.2px; font-weight: 700; }
         .alt-num { font-size: 22px; font-weight: 900; color: #00f0ff; }
 
-        /* Tactical Skills HUD (Bottom Center) */
-        .hud-skills {
-            position: absolute;
-            bottom: 24px;
-            left: 50%;
-            transform: translateX(-50%);
-            display: flex;
-            gap: 16px;
-        }
+        .hud-skills { position: absolute; bottom: 24px; left: 50%; transform: translateX(-50%); display: flex; gap: 16px; }
         .skill-box {
-            background: rgba(12, 20, 36, 0.88);
-            border: 1px solid rgba(0, 240, 255, 0.4);
-            border-radius: 12px;
-            padding: 8px 16px;
-            min-width: 135px;
-            text-align: center;
-            backdrop-filter: blur(6px);
-            transition: all 0.2s;
+            background: rgba(12, 20, 36, 0.88); border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 12px; padding: 8px 16px; min-width: 135px; text-align: center; backdrop-filter: blur(6px);
         }
-        .skill-box.ready {
-            border-color: #00f0ff;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
-        }
-        .skill-box.cooldown {
-            border-color: rgba(255, 255, 255, 0.15);
-            opacity: 0.6;
-        }
-        .skill-key { font-size: 10px; font-weight: 900; color: #94a3b8; letter-spacing: 1px; }
+        .skill-box.ready { border-color: #00f0ff; box-shadow: 0 0 15px rgba(0, 240, 255, 0.3); }
+        .skill-box.cooldown { border-color: rgba(255, 255, 255, 0.15); opacity: 0.6; }
+        .skill-key { font-size: 10px; font-weight: 900; color: #94a3b8; }
         .skill-name { font-size: 14px; font-weight: 900; color: #ffffff; margin-top: 2px; }
         .skill-status { font-size: 11px; font-weight: 800; color: #00f0ff; margin-top: 2px; }
 
-        /* Bottom Controls button */
-        .hud-bottom-right {
-            position: absolute;
-            bottom: 24px;
-            right: 25px;
-            pointer-events: auto;
-            z-index: 15;
-            display: flex;
-            gap: 10px;
-        }
+        .hud-bottom-right { position: absolute; bottom: 24px; right: 25px; pointer-events: auto; z-index: 15; display: flex; gap: 10px; }
         .btn-mini {
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid rgba(0, 240, 255, 0.5);
-            color: #00f0ff;
-            padding: 8px 16px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: 700;
-            cursor: pointer;
-            backdrop-filter: blur(6px);
-            transition: all 0.2s;
+            background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(0, 240, 255, 0.5); color: #00f0ff;
+            padding: 8px 16px; border-radius: 20px; font-size: 12px; font-weight: 700; cursor: pointer;
         }
-        .btn-mini:hover {
-            background: #00f0ff;
-            color: #080e1a;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.6);
-        }
+        .btn-mini:hover { background: #00f0ff; color: #080e1a; }
 
-        /* Banner */
         #banner {
-            position: absolute;
-            top: 28%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            font-size: 38px;
-            font-weight: 900;
-            color: #ffffff;
-            text-shadow: 0 0 24px #00f0ff;
-            letter-spacing: 2px;
-            opacity: 0;
-            transition: opacity 0.25s, transform 0.25s;
-            pointer-events: none;
-            z-index: 20;
-            text-align: center;
+            position: absolute; top: 24%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 34px; font-weight: 900; color: #ffffff; text-shadow: 0 0 24px #00f0ff;
+            letter-spacing: 2px; opacity: 0; transition: opacity 0.25s, transform 0.25s; pointer-events: none; z-index: 20; text-align: center;
         }
 
-        /* Modals & Menus */
+        /* Modals */
         .modal-screen {
-            position: absolute;
-            top: 0; left: 0;
-            width: 100%; height: 100%;
-            background: rgba(8, 14, 26, 0.88);
-            backdrop-filter: blur(12px);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 100;
-            padding: 20px;
-            overflow-y: auto;
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(8, 14, 26, 0.88); backdrop-filter: blur(12px);
+            display: flex; flex-direction: column; justify-content: center; align-items: center;
+            z-index: 100; padding: 20px; overflow-y: auto; pointer-events: auto;
         }
         .menu-card {
             background: linear-gradient(145deg, rgba(17, 28, 48, 0.96), rgba(11, 19, 34, 0.98));
-            border: 1px solid rgba(0, 240, 255, 0.45);
-            border-radius: 20px;
-            padding: 28px 32px;
-            max-width: 540px;
-            width: 100%;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), 0 0 35px rgba(0, 240, 255, 0.2);
-            text-align: center;
+            border: 1px solid rgba(0, 240, 255, 0.45); border-radius: 20px; padding: 26px 30px;
+            max-width: 540px; width: 100%; box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8); text-align: center;
         }
-        .lobby-card {
-            max-width: 720px;
-        }
+        .lobby-card { max-width: 720px; }
         h1.title {
-            font-size: 30px;
-            font-weight: 900;
-            letter-spacing: 2px;
-            background: linear-gradient(90deg, #00f0ff, #ff0077);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            margin-bottom: 6px;
+            font-size: 28px; font-weight: 900; letter-spacing: 2px;
+            background: linear-gradient(90deg, #00f0ff, #ff0077, #f59e0b);
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 6px;
         }
-        .subtitle {
-            font-size: 12px;
-            color: #94a3b8;
-            margin-bottom: 18px;
-        }
-        .btn-group {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-top: 12px;
-        }
+        .subtitle { font-size: 12px; color: #94a3b8; margin-bottom: 16px; }
+        .btn-group { display: flex; flex-direction: column; gap: 10px; margin-top: 12px; }
         .btn-main {
-            background: linear-gradient(90deg, #00d2ff, #0077ff);
-            border: none;
-            color: #ffffff;
-            font-size: 15px;
-            font-weight: bold;
-            padding: 12px 20px;
-            border-radius: 12px;
-            cursor: pointer;
-            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4);
-            transition: all 0.2s;
+            background: linear-gradient(90deg, #00d2ff, #0077ff); border: none; color: #ffffff;
+            font-size: 15px; font-weight: bold; padding: 12px 20px; border-radius: 12px; cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 150, 255, 0.4); transition: all 0.2s;
         }
-        .btn-main:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 22px rgba(0, 240, 255, 0.6);
-        }
-        .btn-main:disabled {
-            background: #334155;
-            color: #94a3b8;
-            box-shadow: none;
-            cursor: not-allowed;
-        }
+        .btn-main:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 22px rgba(0, 240, 255, 0.6); }
+        .btn-main:disabled { background: #334155; color: #94a3b8; box-shadow: none; cursor: not-allowed; }
         .btn-sub {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.22);
-            color: #ffffff;
-            font-size: 14px;
-            font-weight: 600;
-            padding: 11px 18px;
-            border-radius: 12px;
-            cursor: pointer;
-            transition: all 0.2s;
+            background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.22);
+            color: #ffffff; font-size: 14px; font-weight: 600; padding: 10px 18px; border-radius: 12px; cursor: pointer;
         }
-        .btn-sub:hover {
-            background: rgba(255, 255, 255, 0.16);
-            border-color: #00f0ff;
-        }
-        .btn-danger {
-            background: rgba(239, 68, 68, 0.15);
-            border: 1px solid rgba(239, 68, 68, 0.5);
-            color: #fca5a5;
-        }
-        .btn-danger:hover {
-            background: rgba(239, 68, 68, 0.35);
-            border-color: #ef4444;
-            color: #ffffff;
-        }
+        .btn-sub:hover { background: rgba(255, 255, 255, 0.16); border-color: #00f0ff; }
+        .btn-danger { background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.5); color: #fca5a5; }
+        .btn-danger:hover { background: rgba(239, 68, 68, 0.35); border-color: #ef4444; color: #ffffff; }
 
-        /* LOBBY STYLES */
-        .lobby-top-bar {
-            display: flex;
-            gap: 12px;
-            margin-bottom: 16px;
-            align-items: center;
-        }
+        /* Lobby Elements */
+        .lobby-top-bar { display: flex; gap: 12px; margin-bottom: 14px; align-items: center; }
         .name-box {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: rgba(0, 0, 0, 0.35);
-            padding: 8px 12px;
-            border-radius: 10px;
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            flex: 1;
+            display: flex; align-items: center; gap: 8px; background: rgba(0, 0, 0, 0.35);
+            padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.15); flex: 1;
         }
-        .name-box label {
-            font-size: 11px;
-            color: #94a3b8;
-            font-weight: bold;
-            white-space: nowrap;
-        }
-        .teams-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 16px;
-            margin-bottom: 16px;
-        }
-        .team-column {
-            background: rgba(10, 18, 32, 0.8);
-            border-radius: 14px;
-            padding: 14px;
-            text-align: left;
-        }
-        .team-cyan-col {
-            border: 1px solid rgba(0, 240, 255, 0.45);
-            box-shadow: inset 0 0 20px rgba(0, 240, 255, 0.08);
-        }
-        .team-magenta-col {
-            border: 1px solid rgba(255, 0, 119, 0.45);
-            box-shadow: inset 0 0 20px rgba(255, 0, 119, 0.08);
-        }
-        .team-col-header {
-            font-size: 13px;
-            font-weight: 900;
-            letter-spacing: 1px;
-            margin-bottom: 10px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
+        .name-box label { font-size: 11px; color: #94a3b8; font-weight: bold; white-space: nowrap; }
+        .teams-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+        .team-column { background: rgba(10, 18, 32, 0.8); border-radius: 14px; padding: 12px; text-align: left; }
+        .team-cyan-col { border: 1px solid rgba(0, 240, 255, 0.45); }
+        .team-magenta-col { border: 1px solid rgba(255, 0, 119, 0.45); }
+        .team-col-header { font-size: 13px; font-weight: 900; margin-bottom: 10px; display: flex; justify-content: space-between; }
         .slot-card {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 10px;
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            min-height: 48px;
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 10px; padding: 10px 12px; margin-bottom: 8px;
+            display: flex; justify-content: space-between; align-items: center; min-height: 46px;
         }
-        .slot-card.occupied {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: rgba(255, 255, 255, 0.3);
-        }
-        .slot-card.is-me {
-            border-color: #00f0ff;
-            background: rgba(0, 240, 255, 0.15);
-        }
-        .slot-player-name {
-            font-size: 14px;
-            font-weight: 800;
-            color: #ffffff;
-        }
-        .slot-tag {
-            font-size: 10px;
-            padding: 2px 6px;
-            border-radius: 4px;
-            background: rgba(0, 240, 255, 0.2);
-            color: #00f0ff;
-            margin-left: 6px;
-            font-weight: 900;
-        }
+        .slot-card.occupied { background: rgba(255, 255, 255, 0.1); border-color: rgba(255, 255, 255, 0.3); }
+        .slot-card.is-me { border-color: #00f0ff; background: rgba(0, 240, 255, 0.15); }
+        .slot-player-name { font-size: 14px; font-weight: 800; color: #ffffff; }
+        .slot-tag { font-size: 10px; padding: 2px 6px; border-radius: 4px; background: rgba(0, 240, 255, 0.2); color: #00f0ff; margin-left: 6px; font-weight: 900; }
         .btn-slot-join {
-            background: rgba(0, 240, 255, 0.2);
-            border: 1px solid #00f0ff;
-            color: #00f0ff;
-            padding: 5px 12px;
-            border-radius: 6px;
-            font-size: 11px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.15s;
+            background: rgba(0, 240, 255, 0.2); border: 1px solid #00f0ff; color: #00f0ff;
+            padding: 5px 12px; border-radius: 6px; font-size: 11px; font-weight: bold; cursor: pointer;
         }
-        .btn-slot-join:hover {
-            background: #00f0ff;
-            color: #050811;
-        }
-
+        .btn-slot-join:hover { background: #00f0ff; color: #050811; }
         .rules-summary-box {
-            background: rgba(0, 0, 0, 0.35);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 14px;
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-around;
-            gap: 10px;
-            font-size: 11px;
-            color: #cbd5e1;
+            background: rgba(0, 0, 0, 0.35); border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px; padding: 10px 14px; margin-bottom: 14px;
+            display: flex; flex-wrap: wrap; justify-content: space-around; gap: 10px; font-size: 11px; color: #cbd5e1;
         }
-        .rule-chip span {
-            color: #00f0ff;
-            font-weight: 800;
-        }
+        .rule-chip span { color: #00f0ff; font-weight: 800; }
 
-        /* CPU Difficulty Component */
+        /* CPU Difficulty */
         .diff-container {
-            background: rgba(12, 20, 36, 0.75);
-            border: 1px solid rgba(0, 240, 255, 0.25);
-            border-radius: 14px;
-            padding: 12px 14px;
-            margin-bottom: 12px;
-            text-align: left;
+            background: rgba(12, 20, 36, 0.75); border: 1px solid rgba(0, 240, 255, 0.25);
+            border-radius: 14px; padding: 12px 14px; margin-bottom: 12px; text-align: left;
         }
-        .diff-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 8px;
-        }
-        .diff-title { font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: 1px; }
-        .diff-badge { font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 6px; letter-spacing: 1px; }
+        .diff-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+        .diff-title { font-size: 11px; font-weight: 800; color: #94a3b8; }
+        .diff-badge { font-size: 10px; font-weight: 900; padding: 2px 8px; border-radius: 6px; }
         .badge-normal { background: rgba(0, 240, 255, 0.18); color: #00f0ff; border: 1px solid rgba(0, 240, 255, 0.5); }
         .badge-hard { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid rgba(245, 158, 11, 0.6); }
         .badge-god { background: rgba(239, 68, 68, 0.25); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.8); }
         .diff-btn-group { display: flex; gap: 8px; margin-bottom: 6px; }
         .btn-diff {
-            flex: 1;
-            background: rgba(10, 18, 32, 0.9);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #94a3b8;
-            padding: 7px 6px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
+            flex: 1; background: rgba(10, 18, 32, 0.9); border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8; padding: 7px 6px; border-radius: 8px; font-size: 13px; font-weight: 800; cursor: pointer;
         }
         .btn-diff.active[data-diff="normal"] { background: rgba(0, 240, 255, 0.25); border-color: #00f0ff; color: #00f0ff; }
         .btn-diff.active[data-diff="hard"] { background: rgba(245, 158, 11, 0.25); border-color: #f59e0b; color: #f59e0b; }
         .btn-diff.active[data-diff="god"] { background: rgba(239, 68, 68, 0.3); border-color: #ef4444; color: #ef4444; }
         .diff-desc { font-size: 11px; color: #64748b; }
 
-        /* Multiplayer Invite Input */
         .mp-box {
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px dashed rgba(0, 240, 255, 0.45);
-            border-radius: 12px;
-            padding: 10px 14px;
-            margin-bottom: 14px;
-            text-align: left;
+            background: rgba(0, 0, 0, 0.4); border: 1px dashed rgba(0, 240, 255, 0.45);
+            border-radius: 12px; padding: 10px 14px; margin-bottom: 14px; text-align: left;
         }
         .mp-box label { font-size: 11px; font-weight: bold; color: #94a3b8; display: block; margin-bottom: 5px; }
         .input-row { display: flex; gap: 8px; }
         .input-text {
-            flex: 1;
-            background: rgba(10, 18, 32, 0.95);
-            border: 1px solid rgba(0, 240, 255, 0.4);
-            border-radius: 8px;
-            padding: 7px 12px;
-            color: #00f0ff;
-            font-size: 13px;
-            outline: none;
+            flex: 1; background: rgba(10, 18, 32, 0.95); border: 1px solid rgba(0, 240, 255, 0.4);
+            border-radius: 8px; padding: 7px 12px; color: #00f0ff; font-size: 13px; outline: none;
         }
-        .btn-copy {
-            background: #00f0ff;
-            color: #050811;
-            border: none;
-            padding: 7px 14px;
-            border-radius: 8px;
-            font-weight: bold;
-            font-size: 12px;
-            cursor: pointer;
-        }
+        .btn-copy { background: #00f0ff; color: #050811; border: none; padding: 7px 14px; border-radius: 8px; font-weight: bold; font-size: 12px; cursor: pointer; }
 
         /* Settings Tabs */
-        .settings-tabs {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-            padding-bottom: 10px;
-        }
+        .settings-tabs { display: flex; gap: 6px; margin-bottom: 14px; border-bottom: 1px solid rgba(255, 255, 255, 0.12); padding-bottom: 10px; }
         .tab-btn {
-            flex: 1;
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            color: #94a3b8;
-            padding: 8px 6px;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 800;
-            cursor: pointer;
-            transition: all 0.2s;
+            flex: 1; background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #94a3b8; padding: 8px 4px; border-radius: 8px; font-size: 11px; font-weight: 800; cursor: pointer;
         }
-        .tab-btn.active {
-            background: rgba(0, 240, 255, 0.2);
-            border-color: #00f0ff;
-            color: #00f0ff;
-        }
+        .tab-btn.active { background: rgba(0, 240, 255, 0.2); border-color: #00f0ff; color: #00f0ff; }
         .tab-panel { display: none; }
         .tab-panel.active { display: block; }
 
-        /* Tuning card */
-        .tuning-card {
-            max-width: 500px;
-            text-align: left;
-            max-height: 88vh;
-            overflow-y: auto;
-        }
+        .tuning-card { max-width: 520px; text-align: left; max-height: 88vh; overflow-y: auto; }
         .param-row { margin-bottom: 12px; }
-        .param-header {
-            display: flex;
-            justify-content: space-between;
-            font-size: 13px;
-            font-weight: 600;
-            margin-bottom: 2px;
-        }
+        .param-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: 600; margin-bottom: 2px; }
         .param-name { color: #d0e0ff; }
         .param-val { color: #00f0ff; font-weight: bold; }
         .param-desc { font-size: 10px; color: #8fa0c0; margin-bottom: 5px; }
-        input[type="range"] {
-            width: 100%;
-            height: 6px;
-            background: #1e293b;
-            border-radius: 3px;
-            outline: none;
-            accent-color: #00f0ff;
-            cursor: pointer;
+        input[type="range"] { width: 100%; height: 6px; background: #1e293b; border-radius: 3px; outline: none; accent-color: #00f0ff; cursor: pointer; }
+
+        .mode-toggle-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 8px; }
+        .mode-check-card {
+            background: rgba(255, 255, 255, 0.05); border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 8px; padding: 8px 10px; display: flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; cursor: pointer;
         }
+        .mode-check-card input { accent-color: #00f0ff; width: 15px; height: 15px; cursor: pointer; }
 
         .controls-hint {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-            gap: 10px;
-            font-size: 11px;
-            color: #94a3b8;
-            margin-top: 14px;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 10px;
-            border-radius: 10px;
+            display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; font-size: 11px;
+            color: #94a3b8; margin-top: 14px; background: rgba(0, 0, 0, 0.25); padding: 10px; border-radius: 10px;
         }
     </style>
 </head>
@@ -573,6 +242,13 @@
     <div id="canvas-container"></div>
     <div id="flash-overlay"></div>
     <div id="crosshair"><div id="crosshair-dot"></div></div>
+
+    <!-- SLOT MACHINE ROULETTE OVERLAY -->
+    <div id="roulette-box">
+        <div class="roulette-header">🎰 ROUND EVENT ROULETTE 🎰</div>
+        <div id="roulette-slot-title">🏐 STANDARD</div>
+        <div id="roulette-slot-sub">標準ルールでガチンコ対決！</div>
+    </div>
 
     <!-- HUD Overlay -->
     <div id="hud">
@@ -592,12 +268,16 @@
             </div>
         </div>
 
+        <div id="hud-event-pill">
+            <span id="hud-event-name">🏐 STANDARD</span>
+            <span id="hud-event-desc">標準ルール</span>
+        </div>
+
         <div class="alt-box">
             <div class="alt-label">BALL ALTITUDE</div>
             <div class="alt-num" id="alt-num">0.0 m</div>
         </div>
 
-        <!-- Tactical Skills Status -->
         <div class="hud-skills">
             <div class="skill-box ready" id="hud-smash-box">
                 <div class="skill-key">[右クリック] 空中強打</div>
@@ -612,18 +292,17 @@
         </div>
 
         <div class="hud-bottom-right">
-            <button class="btn-mini" id="btn-open-pause">⏸️ メニュー / 設定 (ESC)</button>
+            <button type="button" class="btn-mini" onclick="window.uiTogglePause(event)">⏸️ メニュー / 設定 (ESC)</button>
         </div>
     </div>
 
-    <!-- Banner -->
     <div id="banner">READY</div>
 
     <!-- 1. START MAIN MENU -->
-    <div id="menu-modal" class="modal-screen">
+    <div id="menu-modal" class="modal-screen" style="display:flex;">
         <div class="menu-card">
-            <h1 class="title">CYBER VOLLEY FPS</h1>
-            <p class="subtitle">1v1 / 2v2 ダブルス・カスタムロビー・タクティカルバレー</p>
+            <h1 class="title">CYBER VOLLEY PARTY</h1>
+            <p class="subtitle">🎰 カオスルーレット搭載！6大特殊モード＆2v2ダブルス対応</p>
 
             <div class="diff-container">
                 <div class="diff-header">
@@ -631,56 +310,51 @@
                     <span class="diff-badge badge-normal" id="diff-badge-menu">NORMAL</span>
                 </div>
                 <div class="diff-btn-group" id="diff-group-menu">
-                    <button type="button" class="btn-diff active" data-diff="normal">普通</button>
-                    <button type="button" class="btn-diff" data-diff="hard">強い</button>
-                    <button type="button" class="btn-diff" data-diff="god">無敵</button>
+                    <button type="button" class="btn-diff active" data-diff="normal" onclick="window.uiSetDiff('normal', event)">普通</button>
+                    <button type="button" class="btn-diff" data-diff="hard" onclick="window.uiSetDiff('hard', event)">強い</button>
+                    <button type="button" class="btn-diff" data-diff="god" onclick="window.uiSetDiff('god', event)">無敵</button>
                 </div>
                 <div class="diff-desc" id="diff-desc-menu">適度なラリーが楽しめる標準難易度</div>
             </div>
 
             <div class="btn-group">
-                <button type="button" class="btn-main" id="btn-solo-play">🤖 ソロ練習を開始 (vs AI)</button>
-                <button type="button" class="btn-sub" id="btn-host-create" style="border-color:#00f0ff; color:#00f0ff;">🌐 マルチプレイロビーを作成 (最大4人 / 2v2対応)</button>
-                <button type="button" class="btn-sub" id="btn-settings-menu">⚙️ カスタムルール＆物理・感度設定</button>
+                <button type="button" class="btn-main" id="btn-solo-play" onclick="window.uiStartSolo(event)">🎰 ソロでカオスパーティー開始 (vs AI)</button>
+                <button type="button" class="btn-sub" id="btn-host-create" style="border-color:#00f0ff; color:#00f0ff;" onclick="window.uiCreateLobby(event)">🌐 マルチプレイロビーを作成 (最大4人 / 2v2対応)</button>
+                <button type="button" class="btn-sub" id="btn-settings-menu" onclick="window.uiOpenSettings(event)">⚙️ ルーレット＆カスタムルール設定</button>
             </div>
 
             <div class="controls-hint">
                 <span>[WASD] 移動</span>
                 <span>[SPACE] ジャンプ</span>
-                <span>[左クリック] 通常トス / 敵妨害</span>
-                <span>[空中+右クリック] スマッシュ</span>
+                <span>[左クリック] ショット(ガトリング時は長押し連射)</span>
+                <span>[空中+右クリ] スマッシュ</span>
                 <span>[E] フラッシュ</span>
-                <span>[ESC] ポーズ</span>
             </div>
         </div>
     </div>
 
-    <!-- 2. MULTIPLAYER LOBBY MODAL (Up to 4 Players / Team Select & Rules) -->
+    <!-- 2. MULTIPLAYER LOBBY MODAL -->
     <div id="lobby-modal" class="modal-screen" style="display:none;">
         <div class="menu-card lobby-card">
-            <h1 class="title" style="font-size:26px;">MULTIPLAYER LOBBY</h1>
+            <h1 class="title" style="font-size:26px;">PARTY LOBBY</h1>
             <p class="subtitle" id="lobby-status-sub">チームを選んで準備してください（1v1 / 2v2 / 1v2 対応）</p>
 
-            <!-- Invite URL Box -->
             <div class="mp-box">
                 <label>🔗 友達招待用URL (最大3人の友達に共有してロビーに招待):</label>
                 <div class="input-row">
                     <input type="text" id="share-link-input" class="input-text" readonly>
-                    <button type="button" class="btn-copy" id="btn-copy-link">URLコピー</button>
+                    <button type="button" class="btn-copy" id="btn-copy-link" onclick="window.uiCopyLink(event)">URLコピー</button>
                 </div>
             </div>
 
-            <!-- Player Name Input -->
             <div class="lobby-top-bar">
                 <div class="name-box">
                     <label>👤 あなたの名前:</label>
-                    <input type="text" id="player-name-input" class="input-text" maxlength="12" value="Player">
+                    <input type="text" id="player-name-input" class="input-text" maxlength="12" value="Player" oninput="window.uiNameChanged(this.value)">
                 </div>
             </div>
 
-            <!-- 2v2 Team Slots Grid -->
             <div class="teams-grid">
-                <!-- TEAM CYAN (Slots 0 & 1) -->
                 <div class="team-column team-cyan-col">
                     <div class="team-col-header cyan-text">
                         <span>🟦 TEAM CYAN (手前コート)</span>
@@ -690,7 +364,6 @@
                     <div id="slot-box-1" class="slot-card"></div>
                 </div>
 
-                <!-- TEAM MAGENTA (Slots 2 & 3) -->
                 <div class="team-column team-magenta-col">
                     <div class="team-col-header magenta-text">
                         <span>🟥 TEAM MAGENTA (奥コート)</span>
@@ -701,108 +374,123 @@
                 </div>
             </div>
 
-            <!-- Live Synced Room Rules Summary -->
             <div class="rules-summary-box">
                 <div class="rule-chip">先取点: <span id="sum-points">7点</span></div>
+                <div class="rule-chip">ルーレット: <span id="sum-roulette">1R毎</span></div>
                 <div class="rule-chip">スマッシュ威力: <span id="sum-smashP">1.0x</span></div>
                 <div class="rule-chip">スマッシュCD: <span id="sum-smashCd">2.0s</span></div>
-                <div class="rule-chip">無敵時間: <span id="sum-invuln">1.5s</span></div>
-                <div class="rule-chip">分裂ラリー: <span id="sum-split">15回</span></div>
-                <div class="rule-chip">打上/推進: <span id="sum-phys">8.2 / 4.5</span></div>
+                <div class="rule-chip">分裂ラリー: <span id="sum-split">8回</span></div>
             </div>
 
-            <!-- Lobby Action Buttons -->
             <div class="btn-group" style="flex-direction:row;">
-                <button type="button" class="btn-sub btn-danger" id="btn-lobby-leave" style="flex:1;">🚪 ロビー退出</button>
-                <button type="button" class="btn-sub" id="btn-lobby-settings" style="flex:1;">⚙️ ルール＆感度設定</button>
-                <button type="button" class="btn-main" id="btn-lobby-start" style="flex:1.5;">🚀 試合開始 (START)</button>
+                <button type="button" class="btn-sub btn-danger" style="flex:1;" onclick="window.uiQuitMenu(event)">🚪 ロビー退出</button>
+                <button type="button" class="btn-sub" style="flex:1;" onclick="window.uiOpenSettings(event)">⚙️ ルーレット＆ルール設定</button>
+                <button type="button" class="btn-main" id="btn-lobby-start" style="flex:1.5;" onclick="window.uiLobbyStartMatch(event)">🚀 試合開始 (START)</button>
             </div>
         </div>
     </div>
 
-    <!-- 3. ESC PAUSE MENU MODAL (During Match) -->
+    <!-- 3. ESC PAUSE MENU MODAL -->
     <div id="pause-modal" class="modal-screen" style="display:none;">
         <div class="menu-card" style="max-width:420px;">
             <h1 class="title" style="font-size:26px;">PAUSED</h1>
             <p class="subtitle">試合中メニュー</p>
 
             <div class="btn-group">
-                <button type="button" class="btn-main" id="btn-resume">▶️ ゲームに戻る (Resume)</button>
-                <button type="button" class="btn-sub" id="btn-pause-rematch">🔄 スコアを0-0にして最初からやり直す</button>
-                <button type="button" class="btn-sub" id="btn-pause-lobby" style="display:none; border-color:#00f0ff; color:#00f0ff;">👥 チーム編成ロビーへ戻る (全員)</button>
-                <button type="button" class="btn-sub" id="btn-pause-settings">⚙️ ルール・物理・感度設定を開く</button>
-                <button type="button" class="btn-sub btn-danger" id="btn-pause-quit">🚪 タイトルへ戻る (切断)</button>
+                <button type="button" class="btn-main" onclick="window.uiTogglePause(event)">▶️ ゲームに戻る (Resume)</button>
+                <button type="button" class="btn-sub" onclick="window.uiRematch(event)">🔄 スコアを0-0にして最初からやり直す</button>
+                <button type="button" class="btn-sub" id="btn-pause-lobby" style="display:none; border-color:#00f0ff; color:#00f0ff;" onclick="window.uiReturnLobby(event)">👥 チーム編成ロビーへ戻る (全員)</button>
+                <button type="button" class="btn-sub" onclick="window.uiOpenSettings(event)">⚙️ ルーレット・ルール・感度設定</button>
+                <button type="button" class="btn-sub btn-danger" onclick="window.uiQuitMenu(event)">🚪 タイトルへ戻る (切断)</button>
             </div>
         </div>
     </div>
 
-    <!-- 4. REDESIGNED TABBED SETTINGS MODAL -->
+    <!-- 4. SETTINGS MODAL -->
     <div id="settings-modal" class="modal-screen" style="display:none;">
         <div class="menu-card tuning-card">
-            <h1 class="title" style="font-size:24px; margin-bottom:4px;">CUSTOM SETTINGS</h1>
-            <p class="subtitle" id="settings-sync-note" style="margin-bottom:12px;">※ホストが変更したルール・物理はロビー全員に自動同期されます</p>
+            <h1 class="title" style="font-size:24px; margin-bottom:4px;">PARTY & CUSTOM SETTINGS</h1>
+            <p class="subtitle" id="settings-sync-note" style="margin-bottom:12px;">※ホストが変更したルールはロビー全員に自動同期されます</p>
 
-            <!-- Category Tabs -->
             <div class="settings-tabs">
-                <button type="button" class="tab-btn active" data-tab="tab-rules">⚡ スキル＆ルール</button>
-                <button type="button" class="tab-btn" data-tab="tab-physics">🏐 ボール物理</button>
-                <button type="button" class="tab-btn" data-tab="tab-controls">🎯 感度＆CPU</button>
+                <button type="button" class="tab-btn active" data-tab="tab-chaos" onclick="window.uiSwitchTab('tab-chaos', this)">🎰 カオス抽選</button>
+                <button type="button" class="tab-btn" data-tab="tab-rules" onclick="window.uiSwitchTab('tab-rules', this)">⚡ スキル＆ルール</button>
+                <button type="button" class="tab-btn" data-tab="tab-physics" onclick="window.uiSwitchTab('tab-physics', this)">🏐 ボール物理</button>
+                <button type="button" class="tab-btn" data-tab="tab-controls" onclick="window.uiSwitchTab('tab-controls', this)">🎯 感度＆CPU</button>
+            </div>
+
+            <!-- TAB 0: CHAOS ROULETTE -->
+            <div class="tab-panel active" id="tab-chaos">
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">🎰 ルーレット抽選頻度 (Roulette Interval)</span>
+                        <span class="param-val" id="val-rouletteInterval">1 ラウンド毎</span>
+                    </div>
+                    <div class="param-desc">何ポイントごとにスロットを回してモードを切り替えるか (0 = 抽選OFFで通常固定)</div>
+                    <input type="range" id="slider-rouletteInterval" min="0" max="5" step="1" value="1">
+                </div>
+
+                <div class="param-row">
+                    <div class="param-header">
+                        <span class="param-name">🔀 分裂モード時の分裂ラリー数</span>
+                        <span class="param-val" id="val-splitRally">8 回</span>
+                    </div>
+                    <div class="param-desc">「MULTI-BALL」当選時、何ラリー目でボールが2個に分裂するか</div>
+                    <input type="range" id="slider-splitRally" min="3" max="25" step="1" value="8">
+                </div>
+
+                <div class="param-row" style="margin-top:10px;">
+                    <div class="param-header">
+                        <span class="param-name">✅ ルーレットに出現させるモード選択 (6種類)</span>
+                    </div>
+                    <div class="param-desc">チェックを外したモードはルーレットから除外されます</div>
+                    <div class="mode-toggle-grid">
+                        <label class="mode-check-card"><input type="checkbox" id="chk-mode-0" checked> 🏐 1. 通常 (STANDARD)</label>
+                        <label class="mode-check-card"><input type="checkbox" id="chk-mode-1" checked> 🔀 2. ボール分裂 (MULTI)</label>
+                        <label class="mode-check-card"><input type="checkbox" id="chk-mode-2" checked> 🔬 3. 極小化 (MICRO)</label>
+                        <label class="mode-check-card"><input type="checkbox" id="chk-mode-3" checked> 🔥 4. 超加速＆重化 (TURBO)</label>
+                        <label class="mode-check-card"><input type="checkbox" id="chk-mode-4" checked> 💣 5. 爆弾フェイク (BOMB)</label>
+                        <label class="mode-check-card"><input type="checkbox" id="chk-mode-5" checked> 🔫 6. ガトリング乱射 (GATLING)</label>
+                    </div>
+                </div>
             </div>
 
             <!-- TAB 1: RULES & SKILLS -->
-            <div class="tab-panel active" id="tab-rules">
+            <div class="tab-panel" id="tab-rules">
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">🏆 マッチ先取点数 (Match Target)</span>
                         <span class="param-val" id="val-matchTarget">7 点</span>
                     </div>
-                    <div class="param-desc">何点先取で勝利になるか (標準: 7点)</div>
                     <input type="range" id="slider-matchTarget" min="3" max="21" step="1" value="7">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">🔥 スマッシュの球速・威力 (Smash Power)</span>
                         <span class="param-val" id="val-smashPower">1.0x</span>
                     </div>
-                    <div class="param-desc">空中右クリック強打のスピード倍率 (高いほど超高速レーザー弾道)</div>
                     <input type="range" id="slider-smashPower" min="0.5" max="2.5" step="0.1" value="1.0">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">⚡ スマッシュ クールダウン (右クリック)</span>
                         <span class="param-val" id="val-smashCd">2.0 秒</span>
                     </div>
-                    <div class="param-desc">空中右クリック強打した後の再使用時間 (0秒で連発可)</div>
                     <input type="range" id="slider-smashCd" min="0.0" max="5.0" step="0.5" value="2.0">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">🛡️ 妨害被弾後の無敵時間 (ノックバック)</span>
                         <span class="param-val" id="val-invuln">1.5 秒</span>
                     </div>
-                    <div class="param-desc">敵に撃たれて吹き飛んだ後、連続で撃たれない保護時間</div>
                     <input type="range" id="slider-invuln" min="0.0" max="3.0" step="0.2" value="1.5">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">💥 妨害ノックバックの強さ</span>
                         <span class="param-val" id="val-knockback">11.0</span>
                     </div>
-                    <div class="param-desc">敵プレイヤーに銃弾を当てた時に後方へ弾き飛ばす威力</div>
                     <input type="range" id="slider-knockback" min="4.0" max="20.0" step="1.0" value="11.0">
-                </div>
-
-                <div class="param-row">
-                    <div class="param-header">
-                        <span class="param-name">🔀 ボール分裂ラリー回数 (マルチボール)</span>
-                        <span class="param-val" id="val-splitRally">15 回</span>
-                    </div>
-                    <div class="param-desc">指定ラリー数に達するとボールが2個に分裂！どちらか落ちたら即失点</div>
-                    <input type="range" id="slider-splitRally" min="5" max="30" step="1" value="15">
                 </div>
             </div>
 
@@ -813,34 +501,27 @@
                         <span class="param-name">① 打ち上げ高さ (Vertical Lift)</span>
                         <span class="param-val" id="val-pushY">8.2 m/s</span>
                     </div>
-                    <div class="param-desc">通常ショット時の上方向の跳ね上がり力 (推奨: 6.0 〜 8.5)</div>
                     <input type="range" id="slider-pushY" min="4.0" max="14.0" step="0.2" value="8.2">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">② 相手コートへの前進ドライブ (Forward Push)</span>
                         <span class="param-val" id="val-pushZ">4.5 m/s</span>
                     </div>
-                    <div class="param-desc">通常ショット時の相手陣地へ押し込む推進力 (推奨: 3.0 〜 5.0)</div>
                     <input type="range" id="slider-pushZ" min="2.0" max="10.0" step="0.2" value="4.5">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
-                        <span class="param-name">③ ボール重力 (Ball Gravity)</span>
+                        <span class="param-name">③ ボール基本重力 (Base Gravity)</span>
                         <span class="param-val" id="val-gravity">7.5</span>
                     </div>
-                    <div class="param-desc">ボールの落下速度 (低いとフワリと滞空 / 高いと鋭いラリー)</div>
                     <input type="range" id="slider-gravity" min="4.0" max="12.0" step="0.5" value="7.5">
                 </div>
-
                 <div class="param-row">
                     <div class="param-header">
                         <span class="param-name">④ 左右散りやすさ (Horizontal Spread)</span>
                         <span class="param-val" id="val-pushX">8.0</span>
                     </div>
-                    <div class="param-desc">エイムの左右方向が弾道に影響する度合い</div>
                     <input type="range" id="slider-pushX" min="2.0" max="14.0" step="0.5" value="8.0">
                 </div>
             </div>
@@ -852,27 +533,25 @@
                         <span class="param-name">🎯 マウス視点感度 (Aim Sensitivity)</span>
                         <span class="param-val" id="val-sens">1.0x</span>
                     </div>
-                    <div class="param-desc">FPSカメラの回転スピード (個人の設定として常に変更可能 / 最大5.0x)</div>
                     <input type="range" id="slider-sens" min="0.2" max="5.0" step="0.1" value="1.0">
                 </div>
-
                 <div class="diff-container" style="margin-top:14px;">
                     <div class="diff-header">
                         <span class="diff-title">🤖 ソロ用 CPU 難易度変更</span>
                         <span class="diff-badge badge-normal" id="diff-badge-settings">NORMAL</span>
                     </div>
                     <div class="diff-btn-group" id="diff-group-settings">
-                        <button type="button" class="btn-diff active" data-diff="normal">普通</button>
-                        <button type="button" class="btn-diff" data-diff="hard">強い</button>
-                        <button type="button" class="btn-diff" data-diff="god">無敵</button>
+                        <button type="button" class="btn-diff active" data-diff="normal" onclick="window.uiSetDiff('normal', event)">普通</button>
+                        <button type="button" class="btn-diff" data-diff="hard" onclick="window.uiSetDiff('hard', event)">強い</button>
+                        <button type="button" class="btn-diff" data-diff="god" onclick="window.uiSetDiff('god', event)">無敵</button>
                     </div>
                     <div class="diff-desc" id="diff-desc-settings">適度なラリーが楽しめる標準難易度</div>
                 </div>
             </div>
 
             <div class="btn-group" style="flex-direction:row; margin-top:18px;">
-                <button type="button" class="btn-sub" id="btn-reset-physics" style="flex:1;">↺ 初期値に戻す</button>
-                <button type="button" class="btn-main" id="btn-close-settings" style="flex:1;">保存して閉じる</button>
+                <button type="button" class="btn-sub" style="flex:1;" onclick="window.uiResetSettings(event)">↺ 初期値に戻す</button>
+                <button type="button" class="btn-main" style="flex:1;" onclick="window.uiCloseSettings(event)">保存して閉じる</button>
             </div>
         </div>
     </div>
@@ -883,46 +562,102 @@
             <h1 class="title" id="match-winner-title">MATCH FINISHED</h1>
             <p class="subtitle" id="match-winner-sub">スコア結果</p>
             <div class="btn-group">
-                <button type="button" class="btn-main" id="btn-rematch">🔄 そのままもう一度対戦する</button>
-                <button type="button" class="btn-sub" id="btn-gameover-lobby" style="display:none; border-color:#00f0ff; color:#00f0ff;">👥 ロビーへ戻ってチーム・設定変更</button>
-                <button type="button" class="btn-sub btn-danger" id="btn-back-menu">🚪 タイトルへ戻る</button>
+                <button type="button" class="btn-main" onclick="window.uiRematch(event)">🔄 そのままもう一度対戦する</button>
+                <button type="button" class="btn-sub" id="btn-gameover-lobby" style="display:none; border-color:#00f0ff; color:#00f0ff;" onclick="window.uiReturnLobby(event)">👥 ロビーへ戻ってチーム・設定変更</button>
+                <button type="button" class="btn-sub btn-danger" onclick="window.uiQuitMenu(event)">🚪 タイトルへ戻る</button>
             </div>
         </div>
     </div>
 
 <script>
 /* ==========================================================================
-   CYBER VOLLEY FPS - 2v2 DOUBLES & LOBBY ENGINE (STABILIZED)
+   GLOBAL VARIABLES & CONFIGURATIONS
    ========================================================================== */
-
 window.addEventListener('contextmenu', (e) => e.preventDefault());
 
+const ROUND_EVENTS = [
+    { id: 0, name: '🏐 STANDARD', color: '#00f0ff', desc: '標準ルールでガチンコ対決！' },
+    { id: 1, name: '🔀 MULTI-BALL', color: '#ff0077', desc: '指定ラリー数でボールが2個に分裂！' },
+    { id: 2, name: '🔬 MICRO BALL', color: '#a855f7', desc: '撃つたびにボールが極小化！精密エイム勝負' },
+    { id: 3, name: '🔥 TURBO ACCEL', color: '#f59e0b', desc: '撃つたびに重力・反発・球速が超加速！' },
+    { id: 4, name: '💣 DUMMY BOMB', color: '#ef4444', desc: '赤い罠ボールを撃つと大爆発＆大吹っ飛び！(落としてもセーフ)' },
+    { id: 5, name: '🔫 GATLING GUN', color: '#10b981', desc: '左クリック長押しで超連射！スマッシュもCDゼロで撃ち放題！' }
+];
+
 const DEFAULT_SETTINGS = {
-    pushY: 8.2,
-    pushZ: 4.5,
-    gravity: 7.5,
-    pushX: 8.0,
-    sensitivity: 1.0,
-    cpuDifficulty: 'normal',
-    matchTarget: 7,
-    smashPower: 1.0,
-    smashCooldown: 2.0,
-    hitInvulnTime: 1.5,
-    knockbackPower: 11.0,
-    splitRallyCount: 15,
+    pushY: 8.2, pushZ: 4.5, gravity: 7.5, pushX: 8.0, sensitivity: 1.0,
+    cpuDifficulty: 'normal', matchTarget: 7, smashPower: 1.0, smashCooldown: 2.0,
+    hitInvulnTime: 1.5, knockbackPower: 11.0, splitRallyCount: 8, rouletteInterval: 1,
+    enabledModes: [true, true, true, true, true, true],
     playerName: 'Player' + Math.floor(100 + Math.random() * 899)
 };
 
-let settings = Object.assign({}, DEFAULT_SETTINGS);
+let settings = Object.assign({}, DEFAULT_SETTINGS, { enabledModes: [...DEFAULT_SETTINGS.enabledModes] });
+
+const CPU_CONFIGS = {
+    normal: { id: 'normal', badge: 'NORMAL', badgeClass: 'badge-normal', hudLabel: 'CPU (NORMAL)', colorHex: 0x00f0ff, hudColor: '#00f0ff', moveSpeed: 8.0, baseZ: -8.5, canMoveZ: false, predictive: false, reach: 4.5, minY: 0.8, maxY: 3.8, desc: '適度なラリーが楽しめる標準難易度' },
+    hard: { id: 'hard', badge: 'HARD', badgeClass: 'badge-hard', hudLabel: 'CPU (HARD)', colorHex: 0xf59e0b, hudColor: '#f59e0b', moveSpeed: 17.0, baseZ: -8.0, canMoveZ: true, predictive: true, reach: 5.6, minY: 0.5, maxY: 4.8, desc: '落下地点を先読みし、逆サイドへ打ち分ける実力派' },
+    god: { id: 'god', badge: '無敵 (GOD)', badgeClass: 'badge-god', hudLabel: 'CPU (無敵/GOD)', colorHex: 0xef4444, hudColor: '#ef4444', moveSpeed: 42.0, baseZ: -8.0, canMoveZ: true, predictive: true, reach: 9.5, minY: 0.25, maxY: 5.6, desc: '神速の先回りと超高速スパイク。鉄壁のボス' }
+};
+
+const GAME_MODE = { MENU: 0, SOLO: 1, MP_HOST: 2, MP_GUEST: 3 };
+let currentMode = GAME_MODE.MENU;
+let isPlaying = false;
+
+let myPeerId = 'local';
+let mySlot = 0;
+let myTeam = 1;
+let lobbySlots = [null, null, null, null];
+
+let scoreP1 = 0, scoreP2 = 0, rallyCount = 0, totalRoundsPlayed = 0;
+let activeEventId = 0;
+let currentBallScale = 1.0;
+let currentTurboMult = 1.0;
+let isMouseDownLeft = false;
+let gatlingTimer = 0;
+let dummySpawnTimer = 0;
+let smashCdTimer = 0, flashCharges = 1, myInvulnTimer = 0, flashBlindOpacity = 0;
+
+let rouletteIntervalHandle = null;
+let bannerTimeout = null;
+let peer = null;
+let guestConns = [];
+let hostConn = null;
+
+const slotPositions = [
+    { x: -3.2, y: 1.7, z: 8.0, rot: 0 },
+    { x:  3.2, y: 1.7, z: 8.0, rot: 0 },
+    { x: -3.2, y: 1.7, z: -8.0, rot: Math.PI },
+    { x:  3.2, y: 1.7, z: -8.0, rot: Math.PI }
+];
+
+const COURT_W = 14.0, COURT_D = 24.0, NET_Y = 2.43, BALL_RADIUS = 0.42;
+const balls = [];
+const slotAvatars = [];
+const keys = {};
+let isPointerLocked = false;
+let pitch = 0, yaw = 0, gunRecoil = 0;
+
+const player = {
+    pos: { x: 0, y: 1.7, z: 8.0 },
+    vel: { x: 0, y: 0, z: 0 },
+    knockVel: { x: 0, y: 0, z: 0 },
+    onGround: true,
+    walkSpeed: 7.0,
+    dashSpeed: 10.5,
+    jumpPower: 7.2
+};
 
 function loadSavedSettings() {
     try {
-        const raw = localStorage.getItem('cyber_volley_doubles_settings');
+        const raw = localStorage.getItem('cyber_volley_party_v4');
         if (raw) {
             const parsed = JSON.parse(raw);
             Object.keys(DEFAULT_SETTINGS).forEach(k => {
                 if (parsed[k] !== undefined) {
-                    if (typeof DEFAULT_SETTINGS[k] === 'number') {
+                    if (k === 'enabledModes' && Array.isArray(parsed[k]) && parsed[k].length === 6) {
+                        settings.enabledModes = parsed[k].map(Boolean);
+                    } else if (typeof DEFAULT_SETTINGS[k] === 'number') {
                         const val = parseFloat(parsed[k]);
                         if (!isNaN(val)) settings[k] = val;
                     } else {
@@ -935,74 +670,154 @@ function loadSavedSettings() {
 }
 loadSavedSettings();
 
-const CPU_CONFIGS = {
-    normal: {
-        id: 'normal', badge: 'NORMAL', badgeClass: 'badge-normal', hudLabel: 'CPU (NORMAL)',
-        colorHex: 0x00f0ff, hudColor: '#00f0ff', moveSpeed: 8.0, baseZ: -8.5,
-        canMoveZ: false, predictive: false, reach: 4.5, minY: 0.8, maxY: 3.8,
-        desc: '適度なラリーが楽しめる標準難易度'
-    },
-    hard: {
-        id: 'hard', badge: 'HARD', badgeClass: 'badge-hard', hudLabel: 'CPU (HARD)',
-        colorHex: 0xf59e0b, hudColor: '#f59e0b', moveSpeed: 17.0, baseZ: -8.0,
-        canMoveZ: true, predictive: true, reach: 5.6, minY: 0.5, maxY: 4.8,
-        desc: '落下地点を先読みし、プレイヤーの逆サイドへ打ち分ける実力派'
-    },
-    god: {
-        id: 'god', badge: '無敵 (GOD)', badgeClass: 'badge-god', hudLabel: 'CPU (無敵/GOD)',
-        colorHex: 0xef4444, hudColor: '#ef4444', moveSpeed: 42.0, baseZ: -8.0,
-        canMoveZ: true, predictive: true, reach: 9.5, minY: 0.25, maxY: 5.6,
-        desc: '神速の先回りとコート四隅への超高速スパイク。鉄壁のボス'
+function saveSettings() {
+    try { localStorage.setItem('cyber_volley_party_v4', JSON.stringify(settings)); } catch(e) {}
+    updateLobbyRulesSummary();
+    if (currentMode === GAME_MODE.MP_HOST) broadcastLobbyState();
+}
+
+/* ==========================================================================
+   DIRECT UI HANDLERS (Always responsive regardless of 3D/Network state)
+   ========================================================================== */
+window.uiSetDiff = function(diffKey, ev) {
+    if (ev) ev.stopPropagation();
+    setCpuDifficulty(diffKey);
+};
+
+window.uiStartSolo = function(ev) {
+    if (ev) ev.stopPropagation();
+    // 1. Immediately hide menu and show HUD first!
+    document.getElementById('menu-modal').style.display = 'none';
+    document.getElementById('settings-modal').style.display = 'none';
+    document.getElementById('pause-modal').style.display = 'none';
+    document.getElementById('hud').style.display = 'block';
+    document.getElementById('btn-pause-lobby').style.display = 'none';
+
+    audio.init();
+    currentMode = GAME_MODE.SOLO;
+    mySlot = 0; myTeam = 1;
+    scoreP1 = 0; scoreP2 = 0; rallyCount = 0; totalRoundsPlayed = 0;
+    updateScoreUI();
+
+    for (let s = 0; s < slotAvatars.length; s++) {
+        slotAvatars[s].group.visible = (s === 2);
+    }
+    player.pos.x = 0; player.pos.y = 1.7; player.pos.z = 8.0;
+    yaw = 0; pitch = 0;
+
+    document.getElementById('p1-label').innerText = "YOU (1P)";
+    setCpuDifficulty(settings.cpuDifficulty || 'normal');
+
+    isPlaying = true;
+    safeRequestPointerLock();
+
+    setTimeout(() => { startNextRoundWithRoulette(false); }, 300);
+};
+
+window.uiCreateLobby = function(ev) {
+    if (ev) ev.stopPropagation();
+    audio.init();
+    initPeerAsHost();
+};
+
+window.uiOpenSettings = function(ev) {
+    if (ev) ev.stopPropagation();
+    document.getElementById('pause-modal').style.display = 'none';
+    document.getElementById('settings-modal').style.display = 'flex';
+    const isGuest = (currentMode === GAME_MODE.MP_GUEST);
+    document.getElementById('settings-sync-note').innerText = isGuest
+        ? "※ゲスト参加中は「マウス視点感度」のみ変更可能です（ルールはホストに準拠）"
+        : "※ホストが変更したルールはロビー全員に自動同期されます";
+    try { document.exitPointerLock(); } catch(e) {}
+};
+
+window.uiCloseSettings = function(ev) {
+    if (ev) ev.stopPropagation();
+    document.getElementById('settings-modal').style.display = 'none';
+    if (isPlaying) safeRequestPointerLock();
+};
+
+window.uiResetSettings = function(ev) {
+    if (ev) ev.stopPropagation();
+    if (currentMode === GAME_MODE.MP_GUEST) return;
+    const savedName = settings.playerName;
+    settings = Object.assign({}, DEFAULT_SETTINGS, {
+        enabledModes: [...DEFAULT_SETTINGS.enabledModes],
+        playerName: savedName
+    });
+    syncSettingsDisplay();
+    saveSettings();
+};
+
+window.uiSwitchTab = function(tabId, btnEl) {
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    if (btnEl) btnEl.classList.add('active');
+    const panel = document.getElementById(tabId);
+    if (panel) panel.classList.add('active');
+};
+
+window.uiTogglePause = function(ev) {
+    if (ev) ev.stopPropagation();
+    const pauseEl = document.getElementById('pause-modal');
+    if (pauseEl.style.display === 'flex') {
+        pauseEl.style.display = 'none';
+        if (isPlaying) safeRequestPointerLock();
+    } else {
+        pauseEl.style.display = 'flex';
+        try { document.exitPointerLock(); } catch(e) {}
     }
 };
 
-const GAME_MODE = { MENU: 0, SOLO: 1, MP_HOST: 2, MP_GUEST: 3 };
-let currentMode = GAME_MODE.MENU;
-let isPlaying = false;
+window.uiRematch = function(ev) {
+    if (ev) ev.stopPropagation();
+    executeRematch(true);
+};
 
-let myPeerId = 'local';
-let mySlot = 0;
-let myTeam = 1; // 1 = Cyan (+Z), 2 = Magenta (-Z)
-let lobbySlots = [null, null, null, null];
+window.uiReturnLobby = function(ev) {
+    if (ev) ev.stopPropagation();
+    returnToLobby(true);
+};
 
-let scoreP1 = 0;
-let scoreP2 = 0;
-let rallyCount = 0;
+window.uiQuitMenu = function(ev) {
+    if (ev) ev.stopPropagation();
+    if (window.location.search) window.location.href = window.location.pathname;
+    else window.location.reload();
+};
 
-let smashCdTimer = 0;
-let flashCharges = 1;
-let myInvulnTimer = 0;
-let flashBlindOpacity = 0;
+window.uiCopyLink = function(ev) {
+    if (ev) ev.stopPropagation();
+    const input = document.getElementById('share-link-input');
+    input.select();
+    try { navigator.clipboard.writeText(input.value); } catch(e) {}
+    document.getElementById('btn-copy-link').innerText = "コピー済!";
+    setTimeout(() => { document.getElementById('btn-copy-link').innerText = "URLコピー"; }, 1500);
+};
 
-const _v1 = new THREE.Vector3();
-const _v2 = new THREE.Vector3();
-const _v3 = new THREE.Vector3();
-const _rayDir = new THREE.Vector3();
-
-const COURT_W = 14.0;
-const COURT_D = 24.0;
-const NET_Y = 2.43;
-
-const balls = [];
-const BALL_RADIUS = 0.42;
-
-function safeRequestPointerLock() {
-    try {
-        if (renderer && renderer.domElement && renderer.domElement.requestPointerLock) {
-            renderer.domElement.requestPointerLock();
-        }
-    } catch(e) {}
-}
-
-function saveSettings() {
-    try {
-        localStorage.setItem('cyber_volley_doubles_settings', JSON.stringify(settings));
-    } catch(e) {}
-    updateLobbyRulesSummary();
+window.uiNameChanged = function(val) {
+    const newName = (val || 'Player').substring(0, 12);
+    settings.playerName = newName;
+    saveSettings();
     if (currentMode === GAME_MODE.MP_HOST) {
+        for (let i = 0; i < 4; i++) {
+            if (lobbySlots[i] && lobbySlots[i].peerId === myPeerId) lobbySlots[i].name = newName;
+        }
         broadcastLobbyState();
+    } else if (currentMode === GAME_MODE.MP_GUEST) {
+        sendNetEvent({ type: 'UPDATE_NAME', name: newName });
     }
-}
+};
+
+window.uiLobbyStartMatch = function(ev) {
+    if (ev) ev.stopPropagation();
+    if (currentMode !== GAME_MODE.MP_HOST) return;
+    sendNetEvent({
+        type: 'START_MATCH',
+        slots: lobbySlots,
+        rules: getRulesPayload()
+    });
+    startMultiplayerMatch();
+};
 
 /* ==========================================================================
    WEB AUDIO SYNTHESIZER
@@ -1018,42 +833,68 @@ class AudioController {
             if (this.ctx && this.ctx.state === 'suspended') this.ctx.resume();
         } catch(e) {}
     }
+    playRouletteTick(isFinal = false) {
+        if (!this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+            osc.type = isFinal ? 'triangle' : 'sine';
+            osc.frequency.setValueAtTime(isFinal ? 880 : 520, now);
+            if (isFinal) osc.frequency.setValueAtTime(1174, now + 0.09);
+            const dur = isFinal ? 0.35 : 0.05;
+            gain.gain.setValueAtTime(isFinal ? 0.35 : 0.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + dur);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + dur);
+        } catch(e) {}
+    }
+    playBombExplode() {
+        if (!this.ctx) return;
+        try {
+            const now = this.ctx.currentTime;
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(130, now);
+            osc.frequency.exponentialRampToValueAtTime(28, now + 0.55);
+            gain.gain.setValueAtTime(0.85, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+            osc.connect(gain); gain.connect(this.ctx.destination);
+            osc.start(now); osc.stop(now + 0.55);
+        } catch(e) {}
+    }
     playShot(isSmash = false) {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = isSmash ? 'square' : 'sawtooth';
             osc.frequency.setValueAtTime(isSmash ? 680 : 420, now);
-            osc.frequency.exponentialRampToValueAtTime(60, now + (isSmash ? 0.22 : 0.12));
-            gain.gain.setValueAtTime(isSmash ? 0.5 : 0.3, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + (isSmash ? 0.22 : 0.12));
+            osc.frequency.exponentialRampToValueAtTime(60, now + (isSmash ? 0.22 : 0.10));
+            gain.gain.setValueAtTime(isSmash ? 0.45 : 0.25, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + (isSmash ? 0.22 : 0.10));
             osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(now); osc.stop(now + (isSmash ? 0.22 : 0.12));
+            osc.start(now); osc.stop(now + (isSmash ? 0.22 : 0.10));
         } catch(e) {}
     }
     playBallHit(isSmash = false) {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = isSmash ? 'triangle' : 'sine';
-            osc.frequency.setValueAtTime(isSmash ? 360 : 220, now);
-            osc.frequency.exponentialRampToValueAtTime(80, now + 0.24);
-            gain.gain.setValueAtTime(isSmash ? 0.8 : 0.6, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+            osc.frequency.setValueAtTime(isSmash ? 360 : (220 * currentTurboMult), now);
+            osc.frequency.exponentialRampToValueAtTime(80, now + 0.22);
+            gain.gain.setValueAtTime(isSmash ? 0.75 : 0.55, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
             osc.connect(gain); gain.connect(this.ctx.destination);
-            osc.start(now); osc.stop(now + 0.24);
+            osc.start(now); osc.stop(now + 0.22);
         } catch(e) {}
     }
     playFlashPop(isBlinded = false) {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'sine';
             osc.frequency.setValueAtTime(isBlinded ? 3100 : 1200, now);
             const dur = isBlinded ? 1.6 : 0.3;
@@ -1067,8 +908,7 @@ class AudioController {
         if (!this.ctx) return;
         try {
             const now = this.ctx.currentTime;
-            const osc = this.ctx.createOscillator();
-            const gain = this.ctx.createGain();
+            const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
             osc.type = 'sawtooth';
             osc.frequency.setValueAtTime(160, now);
             osc.frequency.exponentialRampToValueAtTime(45, now + 0.25);
@@ -1083,8 +923,7 @@ class AudioController {
         try {
             const now = this.ctx.currentTime;
             const playTone = (start, dur, freq) => {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
                 osc.type = 'square';
                 osc.frequency.setValueAtTime(freq, start);
                 gain.gain.setValueAtTime(0.12, start);
@@ -1101,8 +940,7 @@ class AudioController {
         try {
             const now = this.ctx.currentTime;
             [440, 554, 659, 880].forEach((freq, idx) => {
-                const osc = this.ctx.createOscillator();
-                const gain = this.ctx.createGain();
+                const osc = this.ctx.createOscillator(), gain = this.ctx.createGain();
                 osc.type = 'triangle';
                 osc.frequency.setValueAtTime(freq, now + idx * 0.08);
                 gain.gain.setValueAtTime(0.2, now + idx * 0.08);
@@ -1118,6 +956,7 @@ const audio = new AudioController();
 /* ==========================================================================
    THREE.JS SCENE & ARENA
    ========================================================================== */
+const _v1 = new THREE.Vector3(), _v2 = new THREE.Vector3(), _v3 = new THREE.Vector3(), _rayDir = new THREE.Vector3();
 const container = document.getElementById('canvas-container');
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0x0a1120);
@@ -1132,73 +971,52 @@ renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 container.appendChild(renderer.domElement);
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.65));
-
 const sunLight = new THREE.DirectionalLight(0xffffff, 0.95);
-sunLight.position.set(15, 32, 10);
-sunLight.castShadow = true;
-sunLight.shadow.mapSize.width = 1024;
-sunLight.shadow.mapSize.height = 1024;
+sunLight.position.set(15, 32, 10); sunLight.castShadow = true;
+sunLight.shadow.mapSize.width = 1024; sunLight.shadow.mapSize.height = 1024;
 scene.add(sunLight);
 
 const fillLight = new THREE.DirectionalLight(0x38bdf8, 0.45);
 fillLight.position.set(-18, 22, -15);
 scene.add(fillLight);
 
+function safeRequestPointerLock() {
+    try {
+        if (renderer && renderer.domElement && renderer.domElement.requestPointerLock) {
+            renderer.domElement.requestPointerLock();
+        }
+    } catch(e) {}
+}
+
 function buildCourtAndArena() {
-    const arenaFloor = new THREE.Mesh(
-        new THREE.PlaneGeometry(100, 100),
-        new THREE.MeshLambertMaterial({ color: 0x111c30 })
-    );
-    arenaFloor.rotation.x = -Math.PI / 2;
-    arenaFloor.receiveShadow = true;
-    scene.add(arenaFloor);
+    const arenaFloor = new THREE.Mesh(new THREE.PlaneGeometry(100, 100), new THREE.MeshLambertMaterial({ color: 0x111c30 }));
+    arenaFloor.rotation.x = -Math.PI / 2; arenaFloor.receiveShadow = true; scene.add(arenaFloor);
 
     const courtCanvas = document.createElement('canvas');
     courtCanvas.width = 512; courtCanvas.height = 1024;
     const ctx = courtCanvas.getContext('2d');
     ctx.fillStyle = '#b87b41'; ctx.fillRect(0, 0, 512, 1024);
     ctx.strokeStyle = 'rgba(0,0,0,0.12)'; ctx.lineWidth = 4;
-    for (let y = 0; y < 1024; y += 32) {
-        ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke();
-    }
+    for (let y = 0; y < 1024; y += 32) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(512, y); ctx.stroke(); }
     ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 14;
     ctx.strokeRect(16, 16, 480, 992);
     ctx.beginPath(); ctx.moveTo(16, 512); ctx.lineTo(496, 512); ctx.stroke();
 
-    const courtMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(COURT_W, COURT_D),
-        new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(courtCanvas) })
-    );
-    courtMesh.rotation.x = -Math.PI / 2;
-    courtMesh.position.y = 0.01;
-    courtMesh.receiveShadow = true;
-    scene.add(courtMesh);
+    const courtMesh = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W, COURT_D), new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(courtCanvas) }));
+    courtMesh.rotation.x = -Math.PI / 2; courtMesh.position.y = 0.01; courtMesh.receiveShadow = true; scene.add(courtMesh);
 
     const wallMat = new THREE.MeshLambertMaterial({ color: 0x1e293b });
     const wallH = 16.0;
     const backWall = new THREE.Mesh(new THREE.PlaneGeometry(60, wallH), wallMat);
-    backWall.position.set(0, wallH / 2, -32);
-    scene.add(backWall);
-
-    const nearWall = backWall.clone();
-    nearWall.rotation.y = Math.PI;
-    nearWall.position.set(0, wallH / 2, 32);
-    scene.add(nearWall);
-
+    backWall.position.set(0, wallH / 2, -32); scene.add(backWall);
+    const nearWall = backWall.clone(); nearWall.rotation.y = Math.PI; nearWall.position.set(0, wallH / 2, 32); scene.add(nearWall);
     const leftWall = new THREE.Mesh(new THREE.PlaneGeometry(64, wallH), wallMat);
-    leftWall.rotation.y = Math.PI / 2;
-    leftWall.position.set(-25, wallH / 2, 0);
-    scene.add(leftWall);
-
-    const rightWall = leftWall.clone();
-    rightWall.rotation.y = -Math.PI / 2;
-    rightWall.position.set(25, wallH / 2, 0);
-    scene.add(rightWall);
+    leftWall.rotation.y = Math.PI / 2; leftWall.position.set(-25, wallH / 2, 0); scene.add(leftWall);
+    const rightWall = leftWall.clone(); rightWall.rotation.y = -Math.PI / 2; rightWall.position.set(25, wallH / 2, 0); scene.add(rightWall);
 
     const poleMat = new THREE.MeshLambertMaterial({ color: 0xffffff });
     const poleL = new THREE.Mesh(new THREE.CylinderGeometry(0.09, 0.09, 3.4, 12), poleMat);
-    poleL.position.set(-COURT_W / 2 - 0.4, 1.7, 0);
-    scene.add(poleL);
+    poleL.position.set(-COURT_W / 2 - 0.4, 1.7, 0); scene.add(poleL);
     const poleR = poleL.clone(); poleR.position.x = COURT_W / 2 + 0.4; scene.add(poleR);
 
     const netCanvas = document.createElement('canvas');
@@ -1212,76 +1030,63 @@ function buildCourtAndArena() {
     const netTex = new THREE.CanvasTexture(netCanvas);
     netTex.wrapS = THREE.RepeatWrapping; netTex.wrapT = THREE.RepeatWrapping; netTex.repeat.set(24, 2);
 
-    const netMesh = new THREE.Mesh(
-        new THREE.PlaneGeometry(COURT_W + 0.8, 1.0),
-        new THREE.MeshBasicMaterial({ map: netTex, transparent: true, side: THREE.DoubleSide })
-    );
-    netMesh.position.set(0, NET_Y - 0.5, 0);
-    scene.add(netMesh);
+    const netMesh = new THREE.Mesh(new THREE.PlaneGeometry(COURT_W + 0.8, 1.0), new THREE.MeshBasicMaterial({ map: netTex, transparent: true, side: THREE.DoubleSide }));
+    netMesh.position.set(0, NET_Y - 0.5, 0); scene.add(netMesh);
 
-    const topTape = new THREE.Mesh(
-        new THREE.BoxGeometry(COURT_W + 0.8, 0.09, 0.09),
-        new THREE.MeshLambertMaterial({ color: 0xffffff })
-    );
-    topTape.position.set(0, NET_Y, 0);
-    scene.add(topTape);
+    const topTape = new THREE.Mesh(new THREE.BoxGeometry(COURT_W + 0.8, 0.09, 0.09), new THREE.MeshLambertMaterial({ color: 0xffffff }));
+    topTape.position.set(0, NET_Y, 0); scene.add(topTape);
 }
 buildCourtAndArena();
 
-function createBallObject(isSecondBall = false) {
+function createBallObject(ballType = 0) {
     const bCanvas = document.createElement('canvas');
     bCanvas.width = 512; bCanvas.height = 256;
     const bctx = bCanvas.getContext('2d');
-    bctx.fillStyle = '#ffffff'; bctx.fillRect(0, 0, 512, 256);
-    bctx.fillStyle = isSecondBall ? '#ff0077' : '#f5c518';
-    bctx.beginPath(); bctx.ellipse(150, 128, 120, 80, 0.4, 0, Math.PI * 2); bctx.fill();
-    bctx.fillStyle = isSecondBall ? '#00f0ff' : '#0055b8';
-    bctx.beginPath(); bctx.ellipse(360, 128, 120, 80, -0.4, 0, Math.PI * 2); bctx.fill();
 
-    const mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(BALL_RADIUS, 24, 20),
-        new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(bCanvas) })
-    );
-    mesh.castShadow = true;
-    mesh.visible = false;
-    scene.add(mesh);
+    if (ballType === 2) {
+        bctx.fillStyle = '#180508'; bctx.fillRect(0, 0, 512, 256);
+        bctx.fillStyle = '#ff1133';
+        for (let x = -256; x < 512; x += 64) {
+            bctx.beginPath(); bctx.moveTo(x, 0); bctx.lineTo(x + 36, 0);
+            bctx.lineTo(x + 292, 256); bctx.lineTo(x + 256, 256); bctx.fill();
+        }
+    } else {
+        bctx.fillStyle = '#ffffff'; bctx.fillRect(0, 0, 512, 256);
+        bctx.fillStyle = (ballType === 1) ? '#ff0077' : '#f5c518';
+        bctx.beginPath(); bctx.ellipse(150, 128, 120, 80, 0.4, 0, Math.PI * 2); bctx.fill();
+        bctx.fillStyle = (ballType === 1) ? '#00f0ff' : '#0055b8';
+        bctx.beginPath(); bctx.ellipse(360, 128, 120, 80, -0.4, 0, Math.PI * 2); bctx.fill();
+    }
+
+    const mat = (ballType === 2)
+        ? new THREE.MeshBasicMaterial({ map: new THREE.CanvasTexture(bCanvas) })
+        : new THREE.MeshLambertMaterial({ map: new THREE.CanvasTexture(bCanvas) });
+
+    const mesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_RADIUS, 24, 20), mat);
+    mesh.castShadow = true; mesh.visible = false; scene.add(mesh);
+
+    const auraMat = new THREE.MeshBasicMaterial({ color: ballType === 2 ? 0xff0000 : 0x00f0ff, transparent: true, opacity: 0.0, wireframe: true });
+    const auraMesh = new THREE.Mesh(new THREE.SphereGeometry(BALL_RADIUS * 1.25, 14, 14), auraMat);
+    mesh.add(auraMesh);
 
     const shadow = new THREE.Mesh(
         new THREE.RingGeometry(0.35, 0.5, 24),
-        new THREE.MeshBasicMaterial({ color: 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
+        new THREE.MeshBasicMaterial({ color: ballType === 2 ? 0xff2200 : 0x00f0ff, side: THREE.DoubleSide, transparent: true, opacity: 0.75 })
     );
-    shadow.rotation.x = -Math.PI / 2;
-    shadow.position.y = 0.03;
-    shadow.visible = false;
-    scene.add(shadow);
+    shadow.rotation.x = -Math.PI / 2; shadow.position.y = 0.03; shadow.visible = false; scene.add(shadow);
 
-    return {
-        mesh: mesh,
-        groundShadow: shadow,
-        vel: new THREE.Vector3(),
-        isAlive: false,
-        lastTouchBy: 1,
-        hitLockTimer: 0
-    };
+    return { mesh, aura: auraMesh, groundShadow: shadow, vel: new THREE.Vector3(), isAlive: false, isDummy: (ballType === 2), lastTouchBy: 1, hitLockTimer: 0 };
 }
-balls.push(createBallObject(false));
-balls.push(createBallObject(true));
+balls.push(createBallObject(0));
+balls.push(createBallObject(1));
+balls.push(createBallObject(2));
 
 const flashOrb = { mesh: null, active: false, vel: new THREE.Vector3(), timer: 0 };
 function buildFlashOrb() {
-    flashOrb.mesh = new THREE.Mesh(
-        new THREE.SphereGeometry(0.22, 16, 16),
-        new THREE.MeshBasicMaterial({ color: 0xffffaa })
-    );
-    flashOrb.mesh.visible = false;
-    scene.add(flashOrb.mesh);
+    flashOrb.mesh = new THREE.Mesh(new THREE.SphereGeometry(0.22, 16, 16), new THREE.MeshBasicMaterial({ color: 0xffffaa }));
+    flashOrb.mesh.visible = false; scene.add(flashOrb.mesh);
 }
 buildFlashOrb();
-
-/* ==========================================================================
-   4-PLAYER AVATAR POOL
-   ========================================================================== */
-const slotAvatars = [];
 
 function createAvatarInstance(slotIndex) {
     const group = new THREE.Group();
@@ -1293,105 +1098,55 @@ function createAvatarInstance(slotIndex) {
     const coreMat  = new THREE.MeshBasicMaterial({ color: baseHex });
     const gunGlowMat = new THREE.MeshBasicMaterial({ color: baseHex });
 
-    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), armorMat);
-    head.position.y = 1.72; group.add(head);
-
-    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.22), visorMat);
-    visor.position.set(0, 1.72, 0.17); group.add(visor);
-
-    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.75, 12), armorMat);
-    torso.position.y = 1.15; group.add(torso);
-
-    const core = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), coreMat);
-    core.position.set(0, 1.25, 0.22); group.add(core);
+    const head = new THREE.Mesh(new THREE.SphereGeometry(0.26, 16, 14), armorMat); head.position.y = 1.72; group.add(head);
+    const visor = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.1, 0.22), visorMat); visor.position.set(0, 1.72, 0.17); group.add(visor);
+    const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.28, 0.22, 0.75, 12), armorMat); torso.position.y = 1.15; group.add(torso);
+    const core = new THREE.Mesh(new THREE.SphereGeometry(0.08, 12, 12), coreMat); core.position.set(0, 1.25, 0.22); group.add(core);
 
     const shoulderGeo = new THREE.SphereGeometry(0.14, 12, 12);
-    const shoulderL = new THREE.Mesh(shoulderGeo, armorMat);
-    shoulderL.position.set(-0.38, 1.4, 0); group.add(shoulderL);
+    const shoulderL = new THREE.Mesh(shoulderGeo, armorMat); shoulderL.position.set(-0.38, 1.4, 0); group.add(shoulderL);
     const shoulderR = shoulderL.clone(); shoulderR.position.x = 0.38; group.add(shoulderR);
 
-    const armGroup = new THREE.Group();
-    armGroup.position.set(0.42, 1.2, 0.1);
-    const blaster = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.55), armorMat);
-    blaster.position.z = 0.28;
-    const gunGlow = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.4), gunGlowMat);
-    gunGlow.position.y = 0.08; blaster.add(gunGlow);
+    const armGroup = new THREE.Group(); armGroup.position.set(0.42, 1.2, 0.1);
+    const blaster = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.16, 0.55), armorMat); blaster.position.z = 0.28;
+    const gunGlow = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.4), gunGlowMat); gunGlow.position.y = 0.08; blaster.add(gunGlow);
     armGroup.add(blaster); group.add(armGroup);
 
     const legGeo = new THREE.CylinderGeometry(0.1, 0.08, 0.8, 10);
-    const legL = new THREE.Mesh(legGeo, armorMat);
-    legL.position.set(-0.16, 0.45, 0); group.add(legL);
+    const legL = new THREE.Mesh(legGeo, armorMat); legL.position.set(-0.16, 0.45, 0); group.add(legL);
     const legR = legL.clone(); legR.position.x = 0.16; group.add(legR);
 
-    const targetMarker = new THREE.Mesh(
-        new THREE.ConeGeometry(0.18, 0.32, 4),
-        new THREE.MeshBasicMaterial({ color: baseHex })
-    );
-    targetMarker.rotation.x = Math.PI;
-    targetMarker.position.set(0, 2.35, 0);
-    group.add(targetMarker);
+    const targetMarker = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.32, 4), new THREE.MeshBasicMaterial({ color: baseHex }));
+    targetMarker.rotation.x = Math.PI; targetMarker.position.set(0, 2.35, 0); group.add(targetMarker);
 
-    group.visible = false;
-    scene.add(group);
-
-    return {
-        slotIndex: slotIndex,
-        team: isTeamCyan ? 1 : 2,
-        group: group,
-        blaster: blaster,
-        targetMarker: targetMarker,
-        visorMat: visorMat,
-        coreMat: coreMat,
-        gunGlowMat: gunGlowMat,
-        armorMat: armorMat,
-        vel: new THREE.Vector3(),
-        invulnTimer: 0
-    };
+    group.visible = false; scene.add(group);
+    return { slotIndex, team: isTeamCyan ? 1 : 2, group, blaster, targetMarker, visorMat, coreMat, gunGlowMat, armorMat, vel: new THREE.Vector3(), invulnTimer: 0 };
 }
-
-for (let i = 0; i < 4; i++) {
-    slotAvatars.push(createAvatarInstance(i));
-}
+for (let i = 0; i < 4; i++) slotAvatars.push(createAvatarInstance(i));
 
 function setAvatarThemeColor(av, hexColor) {
     if (!av) return;
-    av.visorMat.color.setHex(hexColor);
-    av.coreMat.color.setHex(hexColor);
-    av.gunGlowMat.color.setHex(hexColor);
-    av.targetMarker.material.color.setHex(hexColor);
+    av.visorMat.color.setHex(hexColor); av.coreMat.color.setHex(hexColor);
+    av.gunGlowMat.color.setHex(hexColor); av.targetMarker.material.color.setHex(hexColor);
 }
 
-// --- VIEWMODEL & TRACER ---
 const gunViewModel = new THREE.Group();
-let gunRecoil = 0;
-
 function buildViewModel() {
-    const gunBody = new THREE.Mesh(
-        new THREE.BoxGeometry(0.14, 0.18, 0.55),
-        new THREE.MeshLambertMaterial({ color: 0x1e293b })
-    );
-    const glowStrip = new THREE.Mesh(
-        new THREE.BoxGeometry(0.15, 0.04, 0.4),
-        new THREE.MeshBasicMaterial({ color: 0x00f0ff })
-    );
-    glowStrip.position.y = 0.08;
-    gunBody.add(glowStrip);
-    gunViewModel.add(gunBody);
-    gunViewModel.position.set(0.26, -0.25, -0.55);
-    camera.add(gunViewModel);
-    scene.add(camera);
+    const gunBody = new THREE.Mesh(new THREE.BoxGeometry(0.14, 0.18, 0.55), new THREE.MeshLambertMaterial({ color: 0x1e293b }));
+    const glowStrip = new THREE.Mesh(new THREE.BoxGeometry(0.15, 0.04, 0.4), new THREE.MeshBasicMaterial({ color: 0x00f0ff }));
+    glowStrip.position.y = 0.08; gunBody.add(glowStrip);
+    gunViewModel.add(gunBody); gunViewModel.position.set(0.26, -0.25, -0.55);
+    camera.add(gunViewModel); scene.add(camera);
 }
 buildViewModel();
 
 const tracerGeo = new THREE.CylinderGeometry(0.02, 0.02, 1, 6);
 const tracerMat = new THREE.MeshBasicMaterial({ color: 0x00f0ff, transparent: true, opacity: 0.9 });
 const tracerMesh = new THREE.Mesh(tracerGeo, tracerMat);
-tracerMesh.visible = false;
-scene.add(tracerMesh);
+tracerMesh.visible = false; scene.add(tracerMesh);
 
 function fireLaserTracer(from, to, hexColor = 0x00f0ff) {
-    tracerMesh.visible = true;
-    tracerMat.color.setHex(hexColor);
+    tracerMesh.visible = true; tracerMat.color.setHex(hexColor);
     const dist = from.distanceTo(to);
     tracerMesh.scale.set(1, dist, 1);
     tracerMesh.position.copy(from).lerp(to, 0.5);
@@ -1400,34 +1155,95 @@ function fireLaserTracer(from, to, hexColor = 0x00f0ff) {
 }
 
 /* ==========================================================================
-   CONTROLS, SHOOTING, SMASH, KNOCKBACK & FLASHBANG
+   ROULETTE & GAMEPLAY LOGIC
    ========================================================================== */
-const keys = {};
-let isPointerLocked = false;
-let pitch = 0;
-let yaw = 0;
-const player = {
-    pos: new THREE.Vector3(0, 1.7, 8.0),
-    vel: new THREE.Vector3(),
-    knockVel: new THREE.Vector3(),
-    onGround: true,
-    walkSpeed: 7.0,
-    dashSpeed: 10.5,
-    jumpPower: 7.2
-};
+function applyActiveEventBadge(eventId) {
+    activeEventId = eventId;
+    const ev = ROUND_EVENTS[eventId] || ROUND_EVENTS[0];
+    const pill = document.getElementById('hud-event-pill');
+    const nameEl = document.getElementById('hud-event-name');
+    const descEl = document.getElementById('hud-event-desc');
+
+    pill.style.borderColor = ev.color;
+    pill.style.boxShadow = `0 0 20px ${ev.color}66`;
+    nameEl.innerText = ev.name;
+    nameEl.style.color = ev.color;
+    descEl.innerText = ev.desc;
+
+    currentBallScale = 1.0;
+    currentTurboMult = 1.0;
+    for (let i = 0; i < balls.length; i++) {
+        balls[i].mesh.scale.set(1, 1, 1);
+        balls[i].aura.material.opacity = (i === 2) ? 0.45 : 0.0;
+    }
+    updateSkillHUD();
+}
+
+function pickNextRoundEventId() {
+    if (settings.rouletteInterval <= 0) return 0;
+    if (totalRoundsPlayed % settings.rouletteInterval !== 0) return activeEventId;
+    const pool = [];
+    for (let i = 0; i < 6; i++) {
+        if (settings.enabledModes[i]) pool.push(i);
+    }
+    if (pool.length === 0) return 0;
+    return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function playRouletteAnimation(chosenEventId, onComplete) {
+    const box = document.getElementById('roulette-box');
+    const titleEl = document.getElementById('roulette-slot-title');
+    const subEl = document.getElementById('roulette-slot-sub');
+
+    if (settings.rouletteInterval <= 0) {
+        applyActiveEventBadge(0);
+        if (onComplete) onComplete();
+        return;
+    }
+
+    box.style.display = 'block';
+    let ticks = 0;
+    const maxTicks = 14;
+    clearInterval(rouletteIntervalHandle);
+
+    rouletteIntervalHandle = setInterval(() => {
+        ticks++;
+        if (ticks < maxTicks) {
+            const randEv = ROUND_EVENTS[ticks % ROUND_EVENTS.length];
+            titleEl.innerText = randEv.name;
+            titleEl.style.color = randEv.color;
+            titleEl.style.textShadow = `0 0 18px ${randEv.color}`;
+            subEl.innerText = randEv.desc;
+            box.style.borderColor = randEv.color;
+            audio.playRouletteTick(false);
+        } else {
+            clearInterval(rouletteIntervalHandle);
+            const finalEv = ROUND_EVENTS[chosenEventId] || ROUND_EVENTS[0];
+            titleEl.innerText = finalEv.name;
+            titleEl.style.color = finalEv.color;
+            titleEl.style.textShadow = `0 0 25px ${finalEv.color}`;
+            subEl.innerText = finalEv.desc;
+            box.style.borderColor = finalEv.color;
+            box.style.transform = 'translate(-50%, -50%) scale(1.06)';
+            audio.playRouletteTick(true);
+            applyActiveEventBadge(chosenEventId);
+
+            setTimeout(() => {
+                box.style.transform = 'translate(-50%, -50%) scale(0.9)';
+                box.style.display = 'none';
+                if (onComplete) onComplete();
+            }, 900);
+        }
+    }, 75);
+}
 
 window.addEventListener('keydown', (e) => {
     keys[e.code] = true;
     if (e.code === 'Escape') {
-        if (document.getElementById('settings-modal').style.display === 'flex') {
-            closeSettingsModal();
-        } else if (isPlaying) {
-            togglePauseModal();
-        }
+        if (document.getElementById('settings-modal').style.display === 'flex') window.uiCloseSettings();
+        else if (isPlaying) window.uiTogglePause();
     }
-    if (e.code === 'KeyE' && isPlaying) {
-        triggerFlashSkill();
-    }
+    if (e.code === 'KeyE' && isPlaying) triggerFlashSkill();
 });
 window.addEventListener('keyup', (e) => { keys[e.code] = false; });
 
@@ -1441,21 +1257,19 @@ renderer.domElement.addEventListener('click', () => {
 
 document.addEventListener('pointerlockchange', () => {
     isPointerLocked = (document.pointerLockElement === renderer.domElement);
+    if (!isPointerLocked) isMouseDownLeft = false;
 });
 
 document.addEventListener('mousemove', (e) => {
     if (!isPointerLocked) return;
-    let dx = e.movementX || 0;
-    let dy = e.movementY || 0;
+    let dx = e.movementX || 0, dy = e.movementY || 0;
     if (Math.abs(dx) > 450 || Math.abs(dy) > 450) return;
-
     const factor = 0.0022 * settings.sensitivity;
     yaw -= dx * factor;
     pitch -= dy * factor;
     pitch = Math.max(-Math.PI / 2.15, Math.min(Math.PI / 2.15, pitch));
 });
 
-// CRITICAL FIX: Ignore clicks on any UI buttons or modals so starting game doesn't misfire!
 window.addEventListener('mousedown', (e) => {
     if (!isPlaying) return;
     if (e.target && e.target !== renderer.domElement) return;
@@ -1465,16 +1279,24 @@ window.addEventListener('mousedown', (e) => {
         document.getElementById('lobby-modal').style.display === 'flex') return;
 
     if (e.button === 0) {
+        isMouseDownLeft = true;
         shootAction(false);
+        gatlingTimer = 0.11;
     } else if (e.button === 2) {
         shootAction(true);
     }
 });
 
+window.addEventListener('mouseup', (e) => {
+    if (e.button === 0) isMouseDownLeft = false;
+});
+
 function shootAction(wantsSmash) {
     let isSmash = false;
+    const isGatlingMode = (activeEventId === 5);
+
     if (wantsSmash) {
-        if (smashCdTimer > 0) {
+        if (!isGatlingMode && smashCdTimer > 0) {
             showBanner(`SMASH COOLDOWN (${smashCdTimer.toFixed(1)}s)`, '#f59e0b');
             return;
         }
@@ -1486,7 +1308,7 @@ function shootAction(wantsSmash) {
     }
 
     audio.playShot(isSmash);
-    gunRecoil = isSmash ? 0.28 : 0.16;
+    gunRecoil = isSmash ? 0.28 : (isGatlingMode ? 0.09 : 0.16);
 
     camera.getWorldDirection(_rayDir);
     const origin = camera.position;
@@ -1501,10 +1323,11 @@ function shootAction(wantsSmash) {
 
         _v1.subVectors(b.mesh.position, origin);
         const proj = _v1.dot(_rayDir);
-        if (proj > 0 && proj < 35) {
+        if (proj > 0 && proj < 38) {
             _v2.copy(origin).addScaledVector(_rayDir, proj);
             const distToLine = _v2.distanceTo(b.mesh.position);
-            if (distToLine < BALL_RADIUS + 0.55 && distToLine < bestDist) {
+            const effectiveRadius = b.isDummy ? (BALL_RADIUS + 0.55) : (BALL_RADIUS * currentBallScale + 0.48 * Math.max(0.55, currentBallScale));
+            if (distToLine < effectiveRadius && distToLine < bestDist) {
                 bestDist = distToLine;
                 hitBallIdx = i;
             }
@@ -1513,13 +1336,17 @@ function shootAction(wantsSmash) {
 
     if (hitBallIdx !== -1) {
         const b = balls[hitBallIdx];
-        if (isSmash && b.mesh.position.y < NET_Y - 0.15) {
-            showBanner('TOO LOW FOR SMASH! (打点が低い)', '#f59e0b');
-            isSmash = false;
-        }
-        newVel = applyPlayerHitToBall(b, isSmash);
-        if (isSmash) {
-            smashCdTimer = settings.smashCooldown;
+        if (b.isDummy) {
+            triggerDummyBombExplosion(b, true);
+        } else {
+            if (isSmash && b.mesh.position.y < NET_Y - 0.15) {
+                showBanner('TOO LOW FOR SMASH! (打点が低い)', '#f59e0b');
+                isSmash = false;
+            }
+            newVel = applyPlayerHitToBall(b, isSmash);
+            if (isSmash) {
+                smashCdTimer = isGatlingMode ? 0.12 : settings.smashCooldown;
+            }
         }
     }
 
@@ -1537,7 +1364,7 @@ function shootAction(wantsSmash) {
                 _v3.copy(origin).addScaledVector(_rayDir, proj);
                 if (_v3.distanceTo(avatarCenter) < 0.78) {
                     hitOpponentSlot = s;
-                    av.invulnTimer = settings.hitInvulnTime;
+                    av.invulnTimer = isGatlingMode ? 0.25 : settings.hitInvulnTime;
                     audio.playKnockback();
                     showBanner('💥 ENEMY KNOCKBACK!', '#ff0077');
 
@@ -1546,9 +1373,7 @@ function shootAction(wantsSmash) {
                         x: _rayDir.x * settings.knockbackPower * 0.85,
                         z: pushDirZ * settings.knockbackPower
                     };
-                    if (currentMode === GAME_MODE.SOLO) {
-                        av.vel.set(knockVec.x, 0, knockVec.z);
-                    }
+                    if (currentMode === GAME_MODE.SOLO) av.vel.set(knockVec.x, 0, knockVec.z);
                     break;
                 }
             }
@@ -1561,7 +1386,7 @@ function shootAction(wantsSmash) {
     if (hitBallIdx !== -1) targetPoint = balls[hitBallIdx].mesh.position;
     else if (hitOpponentSlot !== -1) targetPoint = slotAvatars[hitOpponentSlot].group.position.clone().add(new THREE.Vector3(0, 1.2, 0));
 
-    const tracerColor = isSmash ? 0xf59e0b : (myTeam === 1 ? 0x00f0ff : 0xff0077);
+    const tracerColor = isSmash ? 0xf59e0b : (isGatlingMode ? 0x10b981 : (myTeam === 1 ? 0x00f0ff : 0xff0077));
     fireLaserTracer(muzzlePos, targetPoint, tracerColor);
 
     if (currentMode === GAME_MODE.MP_GUEST || currentMode === GAME_MODE.MP_HOST) {
@@ -1579,18 +1404,56 @@ function shootAction(wantsSmash) {
     }
 }
 
+function triggerDummyBombExplosion(dummyBall, iShotIt) {
+    dummyBall.isAlive = false;
+    dummyBall.mesh.visible = false;
+    dummyBall.groundShadow.visible = false;
+    audio.playBombExplode();
+
+    if (iShotIt) {
+        const backSign = (myTeam === 1) ? 1 : -1;
+        player.knockVel.x = (Math.random() - 0.5) * 14.0;
+        player.knockVel.z = backSign * 22.0;
+        player.vel.y = 9.5;
+        player.onGround = false;
+        flashBlindOpacity = 1.15;
+        showBanner('💣 BOOM!! 罠ボム誤射で大吹っ飛び！', '#ef4444');
+    } else {
+        showBanner('💣 RIVAL HIT DUMMY BOMB!!', '#f59e0b');
+    }
+}
+
+function applyRoundHitModifiers() {
+    if (activeEventId === 2) {
+        currentBallScale = Math.max(0.28, Math.pow(0.91, rallyCount));
+        for (let i = 0; i < 2; i++) {
+            balls[i].mesh.scale.setScalar(currentBallScale);
+            balls[i].aura.material.color.setHex(0xa855f7);
+            balls[i].aura.material.opacity = 0.65;
+        }
+    } else if (activeEventId === 3) {
+        currentTurboMult = Math.min(2.6, 1.0 + rallyCount * 0.11);
+        for (let i = 0; i < 2; i++) {
+            balls[i].aura.material.color.setHex(0xf59e0b);
+            balls[i].aura.material.opacity = Math.min(0.85, (currentTurboMult - 1.0) * 0.6);
+        }
+    }
+}
+
 function applyPlayerHitToBall(b, isSmash) {
     audio.playBallHit(isSmash);
     rallyCount++;
+    applyRoundHitModifiers();
 
     b.lastTouchBy = myTeam;
-    b.hitLockTimer = 0.14;
+    b.hitLockTimer = (activeEventId === 5) ? 0.06 : 0.14;
 
     updateScoreUI();
 
     const forwardSign = (myTeam === 1) ? -1 : 1;
     camera.getWorldDirection(_rayDir);
 
+    const effGravity = settings.gravity * currentTurboMult;
     let pushX, pushY, pushZ;
 
     if (isSmash) {
@@ -1598,43 +1461,47 @@ function applyPlayerHitToBall(b, isSmash) {
         const targetZ = forwardSign * (4.8 + Math.max(0, _rayDir.y + 0.3) * 5.8);
         const targetX = Math.max(-6.2, Math.min(6.2, b.mesh.position.x + _rayDir.x * 11.0));
 
-        const powerMultiplier = Math.max(0.5, Math.min(2.5, settings.smashPower || 1.0));
-        const smashTime = Math.max(0.45, 1.25 / powerMultiplier);
+        const powerMultiplier = Math.max(0.5, Math.min(2.5, settings.smashPower || 1.0)) * Math.sqrt(currentTurboMult);
+        const smashTime = Math.max(0.38, 1.25 / powerMultiplier);
 
         const rawVz = (targetZ - b.mesh.position.z) / smashTime;
-        pushZ = forwardSign * Math.max(6.0, Math.min(35.0, Math.abs(rawVz)));
+        pushZ = forwardSign * Math.max(6.0, Math.min(38.0, Math.abs(rawVz)));
         pushX = Math.max(-18.0, Math.min(18.0, (targetX - b.mesh.position.x) / smashTime));
-        pushY = (0.5 - b.mesh.position.y + 0.5 * settings.gravity * (smashTime ** 2)) / smashTime;
+        pushY = (0.5 - b.mesh.position.y + 0.5 * effGravity * (smashTime ** 2)) / smashTime;
 
         const onMySide = (myTeam === 1) ? (b.mesh.position.z > 0.4) : (b.mesh.position.z < -0.4);
         if (onMySide) {
             const tNet = Math.abs(b.mesh.position.z / pushZ);
             if (tNet >= 0.15) {
-                const yAtNet = b.mesh.position.y + pushY * tNet - 0.5 * settings.gravity * (tNet ** 2);
+                const yAtNet = b.mesh.position.y + pushY * tNet - 0.5 * effGravity * (tNet ** 2);
                 if (yAtNet < NET_Y + 0.25) {
-                    pushY = (NET_Y + 0.3 - b.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
+                    pushY = (NET_Y + 0.3 - b.mesh.position.y + 0.5 * effGravity * (tNet ** 2)) / tNet;
                 }
             } else if (b.mesh.position.y < NET_Y + 0.3) {
                 pushY = Math.max(pushY, 3.5);
             }
         }
-        pushY = Math.max(-14.0, Math.min(11.5, pushY));
+        pushY = Math.max(-16.0, Math.min(13.5, pushY));
     } else {
-        showBanner(`HIT! RALLY ${rallyCount}`, myTeam === 1 ? '#00f0ff' : '#ff0077');
-        pushZ = forwardSign * Math.max(3.0, settings.pushZ);
-        pushX = _rayDir.x * settings.pushX;
+        if (activeEventId === 2) showBanner(`🔬 MICRO ${(currentBallScale * 100).toFixed(0)}%! RALLY ${rallyCount}`, '#a855f7');
+        else if (activeEventId === 3) showBanner(`🔥 TURBO ${currentTurboMult.toFixed(1)}x! RALLY ${rallyCount}`, '#f59e0b');
+        else showBanner(`HIT! RALLY ${rallyCount}`, myTeam === 1 ? '#00f0ff' : '#ff0077');
+
+        pushZ = forwardSign * Math.max(3.0, settings.pushZ) * currentTurboMult;
+        pushX = _rayDir.x * settings.pushX * Math.sqrt(currentTurboMult);
         const lowBonus = Math.max(0, (2.0 - b.mesh.position.y) * 0.7);
-        pushY = Math.min(14.5, settings.pushY + lowBonus);
+        pushY = Math.min(16.5, (settings.pushY + lowBonus) * Math.sqrt(currentTurboMult));
     }
 
     b.vel.set(pushX, pushY, pushZ);
 
-    if ((currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) &&
+    if (activeEventId === 1 &&
+        (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) &&
         rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
         triggerMultiBallSplit(b);
     }
 
-    return { x: pushX, y: pushY, z: pushZ, touchBy: b.lastTouchBy };
+    return { x: pushX, y: pushY, z: pushZ, touchBy: b.lastTouchBy, scale: currentBallScale, turbo: currentTurboMult };
 }
 
 function triggerMultiBallSplit(sourceBall) {
@@ -1663,9 +1530,37 @@ function triggerMultiBallSplit(sourceBall) {
     }
 }
 
-/* ==========================================================================
-   VALORANT-STYLE FLASHBANG SKILL (E KEY)
-   ========================================================================== */
+function spawnDummyBombBall() {
+    const bDummy = balls[2];
+    if (bDummy.isAlive || !balls[0].isAlive) return;
+
+    bDummy.isAlive = true;
+    bDummy.mesh.visible = true;
+    bDummy.groundShadow.visible = true;
+    bDummy.aura.material.opacity = 0.55;
+
+    const headingToTeam1 = (balls[0].vel.z > 0);
+    const targetZ = headingToTeam1 ? (4.5 + Math.random() * 5.0) : (-4.5 - Math.random() * 5.0);
+    const targetX = (Math.random() - 0.5) * 9.0;
+
+    bDummy.mesh.position.set((Math.random() - 0.5) * 3.0, 3.2, 0);
+    const flightT = 1.9;
+    const vz = (targetZ - 0) / flightT;
+    const vx = (targetX - bDummy.mesh.position.x) / flightT;
+    const vy = (1.5 - 3.2 + 0.5 * settings.gravity * (flightT ** 2)) / flightT;
+    bDummy.vel.set(vx, vy, vz);
+
+    showBanner('💣 WARNING: DUMMY BOMB LAUNCHED!!', '#ef4444');
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendNetEvent({
+            type: 'SPAWN_DUMMY',
+            pos: { x: bDummy.mesh.position.x, y: bDummy.mesh.position.y, z: bDummy.mesh.position.z },
+            vel: { x: vx, y: vy, z: vz }
+        });
+    }
+}
+
 function triggerFlashSkill() {
     if (flashCharges <= 0) {
         showBanner('NO FLASH CHARGES LEFT (1ラリー1回)', '#94a3b8');
@@ -1703,10 +1598,7 @@ function updateFlashOrb(dt) {
     if (!flashOrb.active) return;
     flashOrb.timer -= dt;
     flashOrb.mesh.position.addScaledVector(flashOrb.vel, dt);
-
-    if (flashOrb.timer <= 0) {
-        detonateFlashOrb();
-    }
+    if (flashOrb.timer <= 0) detonateFlashOrb();
 }
 
 function detonateFlashOrb() {
@@ -1728,14 +1620,34 @@ function detonateFlashOrb() {
     }
 }
 
-/* ==========================================================================
-   SERVE & BALL PHYSICS
-   ========================================================================== */
+function startNextRoundWithRoulette(serverIsTeam1) {
+    if (!isPlaying) return;
+    const nextEventId = pickNextRoundEventId();
+    totalRoundsPlayed++;
+
+    if (currentMode === GAME_MODE.MP_HOST) {
+        sendNetEvent({
+            type: 'ROUND_ROULETTE',
+            eventId: nextEventId,
+            serverIsTeam1: serverIsTeam1
+        });
+    }
+
+    playRouletteAnimation(nextEventId, () => {
+        if (isPlaying && (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST)) {
+            launchSafeServe(serverIsTeam1);
+        }
+    });
+}
+
 function launchSafeServe(serverIsTeam1) {
     audio.playWhistle(false);
     rallyCount = 0;
     flashCharges = 1;
     smashCdTimer = 0;
+    dummySpawnTimer = 2.8;
+    currentBallScale = 1.0;
+    currentTurboMult = 1.0;
     updateScoreUI();
     updateSkillHUD();
 
@@ -1745,6 +1657,8 @@ function launchSafeServe(serverIsTeam1) {
 
     const b0 = balls[0];
     b0.mesh.position.set(0, 2.2, spawnZ);
+    b0.mesh.scale.set(1, 1, 1);
+    b0.aura.material.opacity = 0.0;
     b0.mesh.visible = true;
     b0.groundShadow.visible = true;
     b0.lastTouchBy = initialOwner;
@@ -1757,11 +1671,13 @@ function launchSafeServe(serverIsTeam1) {
     b0.vel.set(0, serveVy, serveVz);
     b0.isAlive = true;
 
-    balls[1].isAlive = false;
-    balls[1].mesh.visible = false;
-    balls[1].groundShadow.visible = false;
-    balls[1].lastTouchBy = initialOwner;
-    balls[1].hitLockTimer = 0;
+    for (let i = 1; i <= 2; i++) {
+        balls[i].isAlive = false;
+        balls[i].mesh.visible = false;
+        balls[i].groundShadow.visible = false;
+        balls[i].lastTouchBy = initialOwner;
+        balls[i].hitLockTimer = 0;
+    }
 
     showBanner("SERVE INBOUND", "#00f0ff");
 
@@ -1793,12 +1709,12 @@ function updateAIRival(dt) {
     if (!targetBall.isAlive) return;
 
     const cfg = CPU_CONFIGS[settings.cpuDifficulty] || CPU_CONFIGS.normal;
+    const effGravity = settings.gravity * currentTurboMult;
 
-    let targetX = 0;
-    let targetZ = cfg.baseZ;
+    let targetX = 0, targetZ = cfg.baseZ;
 
     if (cfg.predictive && targetBall.vel.z < 0) {
-        const a = 0.5 * settings.gravity;
+        const a = 0.5 * effGravity;
         const b = -targetBall.vel.y;
         const c = BALL_RADIUS - targetBall.mesh.position.y;
         const disc = b * b - 4 * a * c;
@@ -1830,8 +1746,7 @@ function updateAIRival(dt) {
     if (targetBall.mesh.position.z < -0.4 && targetBall.vel.z < 0 && targetBall.hitLockTimer <= 0) {
         const dist = aiAvatar.group.position.distanceTo(targetBall.mesh.position);
         if (dist < cfg.reach && targetBall.mesh.position.y >= cfg.minY && targetBall.mesh.position.y <= cfg.maxY) {
-            const isGod = (cfg.id === 'god');
-            const isHard = (cfg.id === 'hard');
+            const isGod = (cfg.id === 'god'), isHard = (cfg.id === 'hard');
 
             audio.playShot(isGod);
             audio.playBallHit(isGod || isHard);
@@ -1840,44 +1755,44 @@ function updateAIRival(dt) {
             fireLaserTracer(muzzle, targetBall.mesh.position, cfg.colorHex);
 
             rallyCount++;
+            applyRoundHitModifiers();
             targetBall.lastTouchBy = 2;
             targetBall.hitLockTimer = 0.15;
             updateScoreUI();
 
-            let returnX = 0, returnZ = 7.0, flightTime = 2.4;
+            let returnX = 0, returnZ = 7.0, flightTime = 2.4 / Math.sqrt(currentTurboMult);
 
             if (isGod) {
                 const aimOpposite = player.pos.x >= 0 ? -1 : 1;
                 returnX = aimOpposite * (5.5 + Math.random() * 0.7);
                 returnZ = (Math.random() < 0.7) ? (9.5 + Math.random() * 1.5) : (2.2 + Math.random() * 1.2);
-                flightTime = 1.25;
+                flightTime = 1.25 / Math.sqrt(currentTurboMult);
                 showBanner("GOD SPIKE!!", "#ef4444");
             } else if (isHard) {
                 returnX = (player.pos.x > 0 ? -4.5 : 4.5) + (Math.random() - 0.5) * 1.5;
                 returnZ = 6.5 + Math.random() * 3.5;
-                flightTime = 1.65;
+                flightTime = 1.65 / Math.sqrt(currentTurboMult);
                 showBanner("CPU HARD SPIKE!", "#f59e0b");
             } else {
                 returnX = (Math.random() - 0.5) * 5.0;
                 returnZ = 5.0 + Math.random() * 3.0;
-                flightTime = 2.4;
             }
 
             const vz = (returnZ - targetBall.mesh.position.z) / flightTime;
             const vx = (returnX - targetBall.mesh.position.x) / flightTime;
-            let vy = (1.8 - targetBall.mesh.position.y + 0.5 * settings.gravity * (flightTime ** 2)) / flightTime;
+            let vy = (1.8 - targetBall.mesh.position.y + 0.5 * effGravity * (flightTime ** 2)) / flightTime;
 
             const tNet = Math.abs(targetBall.mesh.position.z / vz);
             if (tNet >= 0.15) {
-                const yAtNet = targetBall.mesh.position.y + vy * tNet - 0.5 * settings.gravity * (tNet ** 2);
+                const yAtNet = targetBall.mesh.position.y + vy * tNet - 0.5 * effGravity * (tNet ** 2);
                 if (yAtNet < NET_Y + 0.35) {
-                    vy = (NET_Y + 0.45 - targetBall.mesh.position.y + 0.5 * settings.gravity * (tNet ** 2)) / tNet;
+                    vy = (NET_Y + 0.45 - targetBall.mesh.position.y + 0.5 * effGravity * (tNet ** 2)) / tNet;
                 }
             }
-            vy = Math.min(12.5, vy);
+            vy = Math.min(14.5, vy);
             targetBall.vel.set(vx, vy, vz);
 
-            if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
+            if (activeEventId === 1 && rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
                 triggerMultiBallSplit(targetBall);
             }
         }
@@ -1894,19 +1809,36 @@ function updateBallVisuals() {
         b.groundShadow.visible = true;
         b.groundShadow.position.x = b.mesh.position.x;
         b.groundShadow.position.z = b.mesh.position.z;
-        const groundDanger = b.mesh.position.y < 1.5;
-        b.groundShadow.material.color.setHex(groundDanger ? 0xff0055 : 0x00f0ff);
+        if (b.isDummy) {
+            b.groundShadow.material.color.setHex(0xff2200);
+            b.mesh.rotation.y += 0.15;
+            b.mesh.rotation.x += 0.1;
+        } else {
+            const groundDanger = b.mesh.position.y < 1.5;
+            b.groundShadow.material.color.setHex(groundDanger ? 0xff0055 : 0x00f0ff);
+        }
     }
     document.getElementById('alt-num').innerText = Math.max(0, balls[0].mesh.position.y).toFixed(1) + " m";
 }
 
 function updateBallPhysics(dt) {
+    if (activeEventId === 4 && balls[0].isAlive && !balls[2].isAlive) {
+        dummySpawnTimer -= dt;
+        if (dummySpawnTimer <= 0) {
+            dummySpawnTimer = 4.2;
+            spawnDummyBombBall();
+        }
+    }
+
+    const effGravity = settings.gravity * currentTurboMult;
+
     for (let i = 0; i < balls.length; i++) {
         const b = balls[i];
         if (b.hitLockTimer > 0) b.hitLockTimer = Math.max(0, b.hitLockTimer - dt);
         if (!b.isAlive) continue;
 
-        b.vel.y -= settings.gravity * dt;
+        const g = b.isDummy ? settings.gravity : effGravity;
+        b.vel.y -= g * dt;
         b.mesh.position.x += b.vel.x * dt;
         b.mesh.position.y += b.vel.y * dt;
         b.mesh.position.z += b.vel.z * dt;
@@ -1918,13 +1850,19 @@ function updateBallPhysics(dt) {
             b.vel.y = Math.max(2.0, b.vel.y * 0.8);
         }
 
-        if (b.mesh.position.y <= BALL_RADIUS) {
-            b.mesh.position.y = BALL_RADIUS;
-            const landedTouchOwner = b.lastTouchBy;
-            balls[0].isAlive = false;
-            balls[1].isAlive = false;
-            onBallLanded(b.mesh.position.x, b.mesh.position.z, landedTouchOwner);
-            break;
+        const radiusNow = b.isDummy ? BALL_RADIUS : (BALL_RADIUS * currentBallScale);
+        if (b.mesh.position.y <= radiusNow) {
+            b.mesh.position.y = radiusNow;
+            if (b.isDummy) {
+                b.isAlive = false;
+                b.mesh.visible = false;
+                b.groundShadow.visible = false;
+            } else {
+                const landedTouchOwner = b.lastTouchBy;
+                for (let k = 0; k < balls.length; k++) balls[k].isAlive = false;
+                onBallLanded(b.mesh.position.x, b.mesh.position.z, landedTouchOwner);
+                break;
+            }
         }
     }
     updateBallVisuals();
@@ -1933,9 +1871,7 @@ function updateBallPhysics(dt) {
 function onBallLanded(landX, landZ, ballTouchOwner) {
     const inBounds = Math.abs(landX) <= (COURT_W / 2) && Math.abs(landZ) <= (COURT_D / 2);
 
-    let pointFor = 0;
-    let isFault = false;
-
+    let pointFor = 0, isFault = false;
     if (inBounds) {
         isFault = false;
         pointFor = (landZ > 0) ? 2 : 1;
@@ -1965,10 +1901,8 @@ function onBallLanded(landX, landZ, ballTouchOwner) {
         endMatch();
     } else {
         setTimeout(() => {
-            if (isPlaying) {
-                launchSafeServe(pointFor === 1);
-            }
-        }, 2200);
+            if (isPlaying) startNextRoundWithRoulette(pointFor === 1);
+        }, 1600);
     }
 }
 
@@ -1978,16 +1912,14 @@ function applyPointPresentation(pointFor, inBounds, isFault) {
 
     const iScored = (pointFor === myTeam);
     let bannerText = '';
-    if (inBounds) {
-        bannerText = iScored ? 'IN! TEAM POINT SCORED!' : 'IN! ENEMY SCORED!';
-    } else {
-        bannerText = iScored ? 'OUT! ENEMY FAULT!' : 'OUT! TEAM FAULT!';
-    }
+    if (inBounds) bannerText = iScored ? 'IN! TEAM POINT SCORED!' : 'IN! ENEMY SCORED!';
+    else bannerText = iScored ? 'OUT! ENEMY FAULT!' : 'OUT! TEAM FAULT!';
     showBanner(bannerText, iScored ? '#00f0ff' : '#ff0077');
 }
 
 function endMatch() {
     isPlaying = false;
+    isMouseDownLeft = false;
     try { document.exitPointerLock(); } catch(e) {}
     audio.playCheer();
 
@@ -2003,18 +1935,24 @@ function endMatch() {
 }
 
 /* ==========================================================================
-   PLAYER MOVEMENT, TIMERS & HUD UPDATES
+   PLAYER MOVEMENT & HUD UPDATES
    ========================================================================== */
 function updatePlayer(dt) {
     if (!isPlaying) return;
+
+    if (activeEventId === 5 && isMouseDownLeft && isPointerLocked) {
+        gatlingTimer -= dt;
+        if (gatlingTimer <= 0) {
+            gatlingTimer = 0.11;
+            shootAction(false);
+        }
+    }
 
     if (smashCdTimer > 0) {
         smashCdTimer = Math.max(0, smashCdTimer - dt);
         updateSkillHUD();
     }
-    if (myInvulnTimer > 0) {
-        myInvulnTimer = Math.max(0, myInvulnTimer - dt);
-    }
+    if (myInvulnTimer > 0) myInvulnTimer = Math.max(0, myInvulnTimer - dt);
 
     for (let s = 0; s < 4; s++) {
         const av = slotAvatars[s];
@@ -2024,9 +1962,7 @@ function updatePlayer(dt) {
         } else {
             av.armorMat.opacity = 1.0;
         }
-        if (av.group.visible && av.targetMarker) {
-            av.targetMarker.rotation.y += dt * 3.0;
-        }
+        if (av.group.visible && av.targetMarker) av.targetMarker.rotation.y += dt * 3.0;
     }
 
     if (flashBlindOpacity > 0) {
@@ -2047,7 +1983,9 @@ function updatePlayer(dt) {
     player.pos.x += (_v2.x * speed + player.knockVel.x) * dt;
     player.pos.z += (_v2.z * speed + player.knockVel.z) * dt;
 
-    player.knockVel.multiplyScalar(Math.max(0, 1.0 - dt * 6.5));
+    const decay = Math.max(0, 1.0 - dt * 6.5);
+    player.knockVel.x *= decay;
+    player.knockVel.z *= decay;
 
     if (keys['Space'] && player.onGround) {
         player.vel.y = player.jumpPower;
@@ -2064,13 +2002,10 @@ function updatePlayer(dt) {
     }
 
     player.pos.x = Math.max(-COURT_W / 2 - 2.5, Math.min(COURT_W / 2 + 2.5, player.pos.x));
-    if (myTeam === 1) {
-        player.pos.z = Math.max(0.8, Math.min(18.0, player.pos.z));
-    } else {
-        player.pos.z = Math.max(-18.0, Math.min(-0.8, player.pos.z));
-    }
+    if (myTeam === 1) player.pos.z = Math.max(0.8, Math.min(18.0, player.pos.z));
+    else player.pos.z = Math.max(-18.0, Math.min(-0.8, player.pos.z));
 
-    camera.position.copy(player.pos);
+    camera.position.set(player.pos.x, player.pos.y, player.pos.z);
     camera.rotation.order = 'YXZ';
     camera.rotation.y = yaw;
     camera.rotation.x = pitch;
@@ -2084,7 +2019,11 @@ function updatePlayer(dt) {
 function updateSkillHUD() {
     const smashBox = document.getElementById('hud-smash-box');
     const smashStat = document.getElementById('hud-smash-status');
-    if (smashCdTimer > 0) {
+    if (activeEventId === 5) {
+        smashBox.className = 'skill-box ready';
+        smashStat.innerText = 'UNLIMITED (0s)';
+        smashStat.style.color = '#10b981';
+    } else if (smashCdTimer > 0) {
         smashBox.className = 'skill-box cooldown';
         smashStat.innerText = `${smashCdTimer.toFixed(1)}s`;
         smashStat.style.color = '#f59e0b';
@@ -2113,7 +2052,6 @@ function updateScoreUI() {
     document.getElementById('rally-val').innerText = rallyCount;
 }
 
-let bannerTimeout = null;
 function showBanner(text, color = '#ffffff') {
     const el = document.getElementById('banner');
     el.innerText = text;
@@ -2128,19 +2066,8 @@ function showBanner(text, color = '#ffffff') {
 }
 
 /* ==========================================================================
-   4-PLAYER STAR TOPOLOGY P2P & LOBBY MANAGEMENT
+   4-PLAYER P2P & LOBBY MANAGEMENT
    ========================================================================== */
-let peer = null;
-let guestConns = [];
-let hostConn = null;
-
-const slotPositions = [
-    { x: -3.2, y: 1.7, z: 8.0, rot: 0 },
-    { x:  3.2, y: 1.7, z: 8.0, rot: 0 },
-    { x: -3.2, y: 1.7, z: -8.0, rot: Math.PI },
-    { x:  3.2, y: 1.7, z: -8.0, rot: Math.PI }
-];
-
 function getRulesPayload() {
     return {
         matchTarget: settings.matchTarget,
@@ -2152,7 +2079,9 @@ function getRulesPayload() {
         smashCooldown: settings.smashCooldown,
         hitInvulnTime: settings.hitInvulnTime,
         knockbackPower: settings.knockbackPower,
-        splitRallyCount: settings.splitRallyCount
+        splitRallyCount: settings.splitRallyCount,
+        rouletteInterval: settings.rouletteInterval,
+        enabledModes: settings.enabledModes
     };
 }
 
@@ -2160,16 +2089,14 @@ function updateLobbyRulesSummary() {
     const elPoints = document.getElementById('sum-points');
     if (!elPoints) return;
     elPoints.innerText = `${Number(settings.matchTarget || 7)}点`;
+    document.getElementById('sum-roulette').innerText = settings.rouletteInterval > 0 ? `${settings.rouletteInterval}R毎` : 'OFF';
     document.getElementById('sum-smashP').innerText = `${Number(settings.smashPower || 1.0).toFixed(1)}x`;
     document.getElementById('sum-smashCd').innerText = `${Number(settings.smashCooldown || 2.0).toFixed(1)}s`;
-    document.getElementById('sum-invuln').innerText = `${Number(settings.hitInvulnTime || 1.5).toFixed(1)}s`;
-    document.getElementById('sum-split').innerText = `${Number(settings.splitRallyCount || 15)}回`;
-    document.getElementById('sum-phys').innerText = `${Number(settings.pushY || 8.2).toFixed(1)} / ${Number(settings.pushZ || 4.5).toFixed(1)}`;
+    document.getElementById('sum-split').innerText = `${Number(settings.splitRallyCount || 8)}回`;
 }
 
 function renderLobbySlotsUI() {
-    let cyanCount = 0;
-    let magentaCount = 0;
+    let cyanCount = 0, magentaCount = 0;
 
     for (let i = 0; i < 4; i++) {
         const box = document.getElementById(`slot-box-${i}`);
@@ -2178,10 +2105,7 @@ function renderLobbySlotsUI() {
         if (slotData) {
             if (i < 2) cyanCount++; else magentaCount++;
             const isMe = (slotData.peerId === myPeerId);
-            if (isMe) {
-                mySlot = i;
-                myTeam = (i < 2) ? 1 : 2;
-            }
+            if (isMe) { mySlot = i; myTeam = (i < 2) ? 1 : 2; }
             box.className = `slot-card occupied ${isMe ? 'is-me' : ''}`;
             box.innerHTML = `
                 <div>
@@ -2195,12 +2119,8 @@ function renderLobbySlotsUI() {
             box.className = 'slot-card';
             box.innerHTML = `
                 <span style="font-size:12px; color:#64748b;">空きスロット (Empty)</span>
-                <button type="button" class="btn-slot-join" data-slot="${i}">ここへ移動</button>
+                <button type="button" class="btn-slot-join" onclick="window.requestSlotMove(${i})">ここへ移動</button>
             `;
-            const btn = box.querySelector('.btn-slot-join');
-            if (btn) {
-                btn.addEventListener('click', () => requestSlotMove(i));
-            }
         }
     }
 
@@ -2218,7 +2138,7 @@ function renderLobbySlotsUI() {
     }
 }
 
-function requestSlotMove(targetSlot) {
+window.requestSlotMove = function(targetSlot) {
     if (lobbySlots[targetSlot] !== null) return;
     if (currentMode === GAME_MODE.MP_HOST) {
         movePlayerToSlot(myPeerId, targetSlot);
@@ -2226,7 +2146,7 @@ function requestSlotMove(targetSlot) {
     } else if (currentMode === GAME_MODE.MP_GUEST) {
         sendNetEvent({ type: 'REQ_SLOT', targetSlot: targetSlot });
     }
-}
+};
 
 function movePlayerToSlot(peerId, targetSlot) {
     if (targetSlot < 0 || targetSlot > 3 || lobbySlots[targetSlot] !== null) return;
@@ -2238,9 +2158,7 @@ function movePlayerToSlot(peerId, targetSlot) {
             break;
         }
     }
-    if (existingPlayer) {
-        lobbySlots[targetSlot] = existingPlayer;
-    }
+    if (existingPlayer) lobbySlots[targetSlot] = existingPlayer;
     renderLobbySlotsUI();
 }
 
@@ -2262,17 +2180,11 @@ function initPeerAsHost() {
     updateLobbyRulesSummary();
 
     myPeerId = 'host_local';
-    lobbySlots = [
-        { peerId: myPeerId, name: settings.playerName, isHost: true },
-        null, null, null
-    ];
+    lobbySlots = [{ peerId: myPeerId, name: settings.playerName, isHost: true }, null, null, null];
     renderLobbySlotsUI();
 
     try {
-        if (typeof Peer === 'undefined') {
-            document.getElementById('share-link-input').value = "PeerJSが読み込めませんでした（オフライン）";
-            return;
-        }
+        if (typeof Peer === 'undefined') return;
         peer = new Peer();
         peer.on('open', (id) => {
             myPeerId = id;
@@ -2295,21 +2207,14 @@ function initPeerAsHost() {
                     return;
                 }
                 guestConns.push(c);
-                lobbySlots[assigned] = {
-                    peerId: c.peer,
-                    name: 'Guest' + (assigned + 1),
-                    isHost: false
-                };
+                lobbySlots[assigned] = { peerId: c.peer, name: 'Guest' + (assigned + 1), isHost: false };
                 broadcastLobbyState();
             });
-
-            c.on('data', (data) => { handleNetData(data, c.peer); });
+            c.on('data', (data) => handleNetData(data, c.peer));
             c.on('close', () => {
                 guestConns = guestConns.filter(conn => conn !== c);
                 for (let i = 0; i < 4; i++) {
-                    if (lobbySlots[i] && lobbySlots[i].peerId === c.peer) {
-                        lobbySlots[i] = null;
-                    }
+                    if (lobbySlots[i] && lobbySlots[i].peerId === c.peer) lobbySlots[i] = null;
                 }
                 broadcastLobbyState();
                 showBanner('⚠️ プレイヤーが退出しました', '#f59e0b');
@@ -2335,7 +2240,7 @@ function initPeerAsGuest(hostRoomId) {
                 document.getElementById('lobby-status-sub').innerText = "ロビー接続完了！チームを選択してホストの開始を待ってください";
                 sendNetEvent({ type: 'UPDATE_NAME', name: settings.playerName });
             });
-            hostConn.on('data', (data) => { handleNetData(data, 'host'); });
+            hostConn.on('data', (data) => handleNetData(data, 'host'));
             hostConn.on('close', () => {
                 alert("ホストとの接続が切断されました。");
                 window.location.href = window.location.pathname;
@@ -2346,16 +2251,14 @@ function initPeerAsGuest(hostRoomId) {
 
 function sendNetEvent(payload) {
     if (currentMode === GAME_MODE.MP_HOST) {
-        guestConns.forEach(c => {
-            if (c && c.open) c.send(payload);
-        });
+        guestConns.forEach(c => { if (c && c.open) c.send(payload); });
     } else if (currentMode === GAME_MODE.MP_GUEST) {
         if (hostConn && hostConn.open) hostConn.send(payload);
     }
 }
 
 function startMultiplayerMatch() {
-    scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
+    scoreP1 = 0; scoreP2 = 0; rallyCount = 0; totalRoundsPlayed = 0;
     flashCharges = 1; smashCdTimer = 0;
     updateScoreUI();
     updateSkillHUD();
@@ -2371,24 +2274,16 @@ function startMultiplayerMatch() {
     document.getElementById('p2-label').style.color = "#ff0077";
 
     const spawnX = (mySlot % 2 === 0) ? -3.2 : 3.2;
-    if (myTeam === 1) {
-        player.pos.set(spawnX, 1.7, 8.0);
-        yaw = 0;
-    } else {
-        player.pos.set(spawnX, 1.7, -8.0);
-        yaw = Math.PI;
-    }
+    if (myTeam === 1) { player.pos.x = spawnX; player.pos.y = 1.7; player.pos.z = 8.0; yaw = 0; }
+    else { player.pos.x = spawnX; player.pos.y = 1.7; player.pos.z = -8.0; yaw = Math.PI; }
     pitch = 0;
 
     for (let s = 0; s < 4; s++) {
         const av = slotAvatars[s];
         if (lobbySlots[s] !== null && s !== mySlot) {
             av.group.visible = true;
-            const isAlly = (av.team === myTeam);
-            setAvatarThemeColor(av, isAlly ? 0x00f0ff : 0xff0055);
-            const sx = (s % 2 === 0) ? -3.2 : 3.2;
-            const sz = (s < 2) ? 8.0 : -8.0;
-            av.group.position.set(sx, 0, sz);
+            setAvatarThemeColor(av, (av.team === myTeam) ? 0x00f0ff : 0xff0055);
+            av.group.position.set((s % 2 === 0) ? -3.2 : 3.2, 0, (s < 2) ? 8.0 : -8.0);
         } else {
             av.group.visible = false;
         }
@@ -2398,24 +2293,43 @@ function startMultiplayerMatch() {
     safeRequestPointerLock();
 
     if (currentMode === GAME_MODE.MP_HOST) {
-        setTimeout(() => { launchSafeServe(true); }, 1500);
+        setTimeout(() => { startNextRoundWithRoulette(true); }, 600);
     }
 }
 
 function returnToLobby(notifyPeers = true) {
     isPlaying = false;
-    balls[0].isAlive = false; balls[0].mesh.visible = false; balls[0].groundShadow.visible = false;
-    balls[1].isAlive = false; balls[1].mesh.visible = false; balls[1].groundShadow.visible = false;
+    isMouseDownLeft = false;
+    for (let i = 0; i < balls.length; i++) {
+        balls[i].isAlive = false; balls[i].mesh.visible = false; balls[i].groundShadow.visible = false;
+    }
     try { document.exitPointerLock(); } catch(e) {}
 
     document.getElementById('hud').style.display = 'none';
+    document.getElementById('roulette-box').style.display = 'none';
     document.getElementById('pause-modal').style.display = 'none';
     document.getElementById('gameover-modal').style.display = 'none';
     document.getElementById('lobby-modal').style.display = 'flex';
     renderLobbySlotsUI();
 
-    if (notifyPeers) {
-        sendNetEvent({ type: 'RETURN_TO_LOBBY' });
+    if (notifyPeers) sendNetEvent({ type: 'RETURN_TO_LOBBY' });
+}
+
+function executeRematch(notifyPeer = true) {
+    scoreP1 = 0; scoreP2 = 0; rallyCount = 0; totalRoundsPlayed = 0;
+    flashCharges = 1; smashCdTimer = 0;
+    updateScoreUI();
+    updateSkillHUD();
+    document.getElementById('gameover-modal').style.display = 'none';
+    document.getElementById('pause-modal').style.display = 'none';
+    isPlaying = true;
+    safeRequestPointerLock();
+
+    if (notifyPeer && (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST)) {
+        sendNetEvent({ type: 'REMATCH' });
+    }
+    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) {
+        setTimeout(() => { startNextRoundWithRoulette(true); }, 500);
     }
 }
 
@@ -2448,10 +2362,10 @@ function handleNetData(data, senderPeerId) {
         syncSettingsDisplay();
         renderLobbySlotsUI();
         startMultiplayerMatch();
+    } else if (data.type === 'ROUND_ROULETTE') {
+        playRouletteAnimation(data.eventId, null);
     } else if (data.type === 'RETURN_TO_LOBBY') {
-        if (currentMode === GAME_MODE.MP_HOST) {
-            sendNetEvent({ type: 'RETURN_TO_LOBBY' });
-        }
+        if (currentMode === GAME_MODE.MP_HOST) sendNetEvent({ type: 'RETURN_TO_LOBBY' });
         returnToLobby(false);
     } else if (data.type === 'CLIENT_POS' && currentMode === GAME_MODE.MP_HOST) {
         if (data.slot >= 0 && data.slot < 4) {
@@ -2471,30 +2385,30 @@ function handleNetData(data, senderPeerId) {
                 av.group.rotation.y = p.rot + Math.PI;
             }
         }
-        for (let i = 0; i < 2; i++) {
+        currentBallScale = data.scale || 1.0;
+        currentTurboMult = data.turbo || 1.0;
+        for (let i = 0; i < balls.length; i++) {
             const bData = data.balls[i];
+            if (!bData) continue;
             const b = balls[i];
             b.isAlive = bData.alive;
             b.mesh.visible = bData.alive;
             b.lastTouchBy = bData.touchBy;
+            if (!b.isDummy) b.mesh.scale.setScalar(currentBallScale);
             if (bData.alive) {
                 b.mesh.position.set(bData.x, bData.y, bData.z);
                 b.vel.set(bData.vx, bData.vy, bData.vz);
             }
         }
-        scoreP1 = data.s1;
-        scoreP2 = data.s2;
-        rallyCount = data.rally;
+        scoreP1 = data.s1; scoreP2 = data.s2; rallyCount = data.rally;
         updateScoreUI();
         updateBallVisuals();
     } else if (data.type === 'SHOOT') {
         if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') {
-            guestConns.forEach(c => {
-                if (c && c.open && c.peer !== senderPeerId) c.send(data);
-            });
+            guestConns.forEach(c => { if (c && c.open && c.peer !== senderPeerId) c.send(data); });
         }
 
-        const targetPos = (data.hitBallIdx !== -1) ? balls[data.hitBallIdx].mesh.position : player.pos;
+        const targetPos = (data.hitBallIdx !== -1 && balls[data.hitBallIdx]) ? balls[data.hitBallIdx].mesh.position : new THREE.Vector3(player.pos.x, player.pos.y, player.pos.z);
         fireLaserTracer(
             new THREE.Vector3(data.origin.x, data.origin.y, data.origin.z),
             targetPos,
@@ -2502,26 +2416,32 @@ function handleNetData(data, senderPeerId) {
         );
         audio.playShot(data.isSmash);
 
-        if (data.hitBallIdx !== -1 && data.vel) {
+        if (data.hitBallIdx === 2) {
+            triggerDummyBombExplosion(balls[2], false);
+        } else if (data.hitBallIdx !== -1 && data.vel) {
             const b = balls[data.hitBallIdx];
             audio.playBallHit(data.isSmash);
             b.lastTouchBy = data.shooterTeam;
 
             if (currentMode === GAME_MODE.MP_HOST && b.hitLockTimer <= 0) {
-                b.hitLockTimer = 0.14;
-                const safeVy = Math.max(-14.0, Math.min(14.5, data.vel.y));
-                b.vel.set(data.vel.x, safeVy, data.vel.z);
+                b.hitLockTimer = (activeEventId === 5) ? 0.06 : 0.14;
                 rallyCount++;
+                applyRoundHitModifiers();
+                const safeVy = Math.max(-16.0, Math.min(16.5, data.vel.y));
+                b.vel.set(data.vel.x, safeVy, data.vel.z);
                 updateScoreUI();
                 showBanner(data.isSmash ? `⚡ SMASH!! RALLY ${rallyCount}` : `HIT! RALLY ${rallyCount}`, data.shooterTeam === 1 ? '#00f0ff' : '#ff0077');
-                if (rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
+                if (activeEventId === 1 && rallyCount >= settings.splitRallyCount && !balls[1].isAlive) {
                     triggerMultiBallSplit(b);
                 }
+            } else if (currentMode === GAME_MODE.MP_GUEST) {
+                applyRoundHitModifiers();
             }
         }
         if (data.hitOpponentSlot === mySlot && data.knockVec && myInvulnTimer <= 0) {
-            myInvulnTimer = settings.hitInvulnTime;
-            player.knockVel.set(data.knockVec.x, 0, data.knockVec.z);
+            myInvulnTimer = (activeEventId === 5) ? 0.25 : settings.hitInvulnTime;
+            player.knockVel.x = data.knockVec.x;
+            player.knockVel.z = data.knockVec.z;
             audio.playKnockback();
             showBanner('⚠️ HIT BY ENEMY! KNOCKBACK!', '#ef4444');
         } else if (data.hitOpponentSlot !== -1 && data.hitOpponentSlot !== mySlot) {
@@ -2529,47 +2449,148 @@ function handleNetData(data, senderPeerId) {
         }
     } else if (data.type === 'SPLIT_BALL') {
         const b2 = balls[1];
-        b2.isAlive = true;
-        b2.mesh.visible = true;
-        b2.groundShadow.visible = true;
+        b2.isAlive = true; b2.mesh.visible = true; b2.groundShadow.visible = true;
         b2.mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
         b2.lastTouchBy = data.touchBy || balls[0].lastTouchBy;
         balls[0].vel.set(data.v1.x, data.v1.y, data.v1.z);
         b2.vel.set(data.v2.x, data.v2.y, data.v2.z);
         showBanner('⚠️ MULTI-BALL SPLIT!! (2個モード突入)', '#ff0077');
         audio.playWhistle(false);
+    } else if (data.type === 'SPAWN_DUMMY') {
+        const bDummy = balls[2];
+        bDummy.isAlive = true; bDummy.mesh.visible = true; bDummy.groundShadow.visible = true;
+        bDummy.aura.material.opacity = 0.55;
+        bDummy.mesh.position.set(data.pos.x, data.pos.y, data.pos.z);
+        bDummy.vel.set(data.vel.x, data.vel.y, data.vel.z);
+        showBanner('💣 WARNING: DUMMY BOMB LAUNCHED!!', '#ef4444');
     } else if (data.type === 'FLASH_CAST') {
         if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') {
-            guestConns.forEach(c => {
-                if (c && c.open && c.peer !== senderPeerId) c.send(data);
-            });
+            guestConns.forEach(c => { if (c && c.open && c.peer !== senderPeerId) c.send(data); });
         }
         spawnFlashOrb(data.pos, data.vel);
     } else if (data.type === 'SERVE_ALERT') {
         audio.playWhistle(false);
-        flashCharges = 1;
-        smashCdTimer = 0;
+        flashCharges = 1; smashCdTimer = 0;
+        currentBallScale = 1.0; currentTurboMult = 1.0;
         const owner = data.serverIsTeam1 ? 1 : 2;
         balls[0].lastTouchBy = owner;
-        balls[1].isAlive = false;
-        balls[1].mesh.visible = false;
-        balls[1].groundShadow.visible = false;
-        balls[1].lastTouchBy = owner;
+        balls[0].mesh.scale.set(1, 1, 1);
+        for (let i = 1; i <= 2; i++) {
+            balls[i].isAlive = false; balls[i].mesh.visible = false; balls[i].groundShadow.visible = false;
+        }
         updateSkillHUD();
         showBanner("SERVE INBOUND", "#00f0ff");
     } else if (data.type === 'POINT_SCORED') {
-        scoreP1 = data.s1;
-        scoreP2 = data.s2;
+        scoreP1 = data.s1; scoreP2 = data.s2;
         applyPointPresentation(data.pointFor, data.inBounds, data.isFault);
         const targetScore = settings.matchTarget || 7;
-        if (scoreP1 >= targetScore || scoreP2 >= targetScore) {
-            endMatch();
-        }
+        if (scoreP1 >= targetScore || scoreP2 >= targetScore) endMatch();
     } else if (data.type === 'REMATCH') {
-        if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') {
-            sendNetEvent({ type: 'REMATCH' });
-        }
+        if (currentMode === GAME_MODE.MP_HOST && senderPeerId !== 'host') sendNetEvent({ type: 'REMATCH' });
         executeRematch(false);
+    }
+}
+
+/* ==========================================================================
+   SETTINGS BINDINGS & INITIALIZATION
+   ========================================================================== */
+function setCpuDifficulty(diffKey) {
+    if (!CPU_CONFIGS[diffKey]) diffKey = 'normal';
+    settings.cpuDifficulty = diffKey;
+    saveSettings();
+
+    const cfg = CPU_CONFIGS[diffKey];
+    ['menu', 'settings'].forEach(suffix => {
+        const badge = document.getElementById(`diff-badge-${suffix}`);
+        if (badge) { badge.className = `diff-badge ${cfg.badgeClass}`; badge.innerText = cfg.badge; }
+        const desc = document.getElementById(`diff-desc-${suffix}`);
+        if (desc) desc.innerText = cfg.desc;
+        document.querySelectorAll(`#diff-group-${suffix} .btn-diff`).forEach(b => {
+            b.classList.toggle('active', b.getAttribute('data-diff') === diffKey);
+        });
+    });
+
+    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MENU) {
+        const p2Label = document.getElementById('p2-label');
+        if (p2Label) { p2Label.innerText = cfg.hudLabel; p2Label.style.color = cfg.hudColor; }
+        if (slotAvatars[2]) setAvatarThemeColor(slotAvatars[2], cfg.colorHex);
+    }
+}
+
+function syncSettingsDisplay() {
+    const bindSlider = (id, key, unit = '', decimals = 1) => {
+        const slider = document.getElementById(`slider-${id}`);
+        const valEl = document.getElementById(`val-${id}`);
+        if (slider && valEl && settings[key] !== undefined) {
+            slider.value = settings[key];
+            if (key === 'rouletteInterval') {
+                valEl.innerText = settings[key] > 0 ? `${settings[key]} ラウンド毎` : 'OFF (通常固定)';
+            } else {
+                valEl.innerText = Number(settings[key]).toFixed(decimals) + unit;
+            }
+        }
+    };
+    bindSlider('rouletteInterval', 'rouletteInterval', '', 0);
+    bindSlider('splitRally', 'splitRallyCount', ' 回', 0);
+    bindSlider('matchTarget', 'matchTarget', ' 点', 0);
+    bindSlider('smashPower', 'smashPower', 'x', 1);
+    bindSlider('smashCd', 'smashCooldown', ' 秒', 1);
+    bindSlider('invuln', 'hitInvulnTime', ' 秒', 1);
+    bindSlider('knockback', 'knockbackPower', '', 1);
+    bindSlider('pushY', 'pushY', ' m/s', 1);
+    bindSlider('pushZ', 'pushZ', ' m/s', 1);
+    bindSlider('gravity', 'gravity', '', 1);
+    bindSlider('pushX', 'pushX', '', 1);
+    bindSlider('sens', 'sensitivity', 'x', 1);
+
+    for (let i = 0; i < 6; i++) {
+        const chk = document.getElementById(`chk-mode-${i}`);
+        if (chk) chk.checked = Boolean(settings.enabledModes[i]);
+    }
+
+    setCpuDifficulty(settings.cpuDifficulty || 'normal');
+    updateLobbyRulesSummary();
+}
+
+function setupSliderListener(id, key, unit = '', decimals = 1) {
+    const el = document.getElementById(`slider-${id}`);
+    if (!el) return;
+    el.addEventListener('input', (e) => {
+        if (currentMode === GAME_MODE.MP_GUEST && key !== 'sensitivity') {
+            syncSettingsDisplay();
+            return;
+        }
+        settings[key] = parseFloat(e.target.value);
+        const valEl = document.getElementById(`val-${id}`);
+        if (key === 'rouletteInterval') {
+            valEl.innerText = settings[key] > 0 ? `${settings[key]} ラウンド毎` : 'OFF (通常固定)';
+        } else {
+            valEl.innerText = settings[key].toFixed(decimals) + unit;
+        }
+        saveSettings();
+    });
+}
+setupSliderListener('rouletteInterval', 'rouletteInterval', '', 0);
+setupSliderListener('splitRally', 'splitRallyCount', ' 回', 0);
+setupSliderListener('matchTarget', 'matchTarget', ' 点', 0);
+setupSliderListener('smashPower', 'smashPower', 'x', 1);
+setupSliderListener('smashCd', 'smashCooldown', ' 秒', 1);
+setupSliderListener('invuln', 'hitInvulnTime', ' 秒', 1);
+setupSliderListener('knockback', 'knockbackPower', '', 1);
+setupSliderListener('pushY', 'pushY', ' m/s', 1);
+setupSliderListener('pushZ', 'pushZ', ' m/s', 1);
+setupSliderListener('gravity', 'gravity', '', 1);
+setupSliderListener('pushX', 'pushX', '', 1);
+setupSliderListener('sens', 'sensitivity', 'x', 1);
+
+for (let i = 0; i < 6; i++) {
+    const chk = document.getElementById(`chk-mode-${i}`);
+    if (chk) {
+        chk.addEventListener('change', (e) => {
+            if (currentMode === GAME_MODE.MP_GUEST) { syncSettingsDisplay(); return; }
+            settings.enabledModes[i] = e.target.checked;
+            saveSettings();
+        });
     }
 }
 
@@ -2589,17 +2610,17 @@ function animate(now) {
 
         if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) {
             updateBallPhysics(dt);
-            if (currentMode === GAME_MODE.SOLO) {
-                updateAIRival(dt);
-            }
+            if (currentMode === GAME_MODE.SOLO) updateAIRival(dt);
         } else if (currentMode === GAME_MODE.MP_GUEST) {
-            for (let i = 0; i < 2; i++) {
+            const effGravity = settings.gravity * currentTurboMult;
+            for (let i = 0; i < balls.length; i++) {
                 const b = balls[i];
                 if (b.hitLockTimer > 0) b.hitLockTimer = Math.max(0, b.hitLockTimer - dt);
                 if (b.isAlive) {
-                    b.vel.y -= settings.gravity * dt;
+                    const g = b.isDummy ? settings.gravity : effGravity;
+                    b.vel.y -= g * dt;
                     b.mesh.position.x += b.vel.x * dt;
-                    b.mesh.position.y = Math.max(BALL_RADIUS, b.mesh.position.y + b.vel.y * dt);
+                    b.mesh.position.y = Math.max(BALL_RADIUS * currentBallScale, b.mesh.position.y + b.vel.y * dt);
                     b.mesh.position.z += b.vel.z * dt;
                 }
             }
@@ -2611,6 +2632,8 @@ function animate(now) {
             sendNetEvent({
                 type: 'WORLD_STATE',
                 positions: slotPositions,
+                scale: currentBallScale,
+                turbo: currentTurboMult,
                 balls: balls.map(b => ({
                     alive: b.isAlive,
                     touchBy: b.lastTouchBy,
@@ -2634,257 +2657,13 @@ function animate(now) {
 }
 requestAnimationFrame(animate);
 
-/* ==========================================================================
-   UI CONTROLLERS, TABS & LOBBY / SETTINGS MENUS
-   ========================================================================== */
-document.querySelectorAll('.tab-btn').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-        document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-        btn.classList.add('active');
-        document.getElementById(btn.getAttribute('data-tab')).classList.add('active');
-    });
-});
-
-function setCpuDifficulty(diffKey) {
-    if (!CPU_CONFIGS[diffKey]) diffKey = 'normal';
-    settings.cpuDifficulty = diffKey;
-    saveSettings();
-
-    const cfg = CPU_CONFIGS[diffKey];
-
-    ['menu', 'settings'].forEach(suffix => {
-        const badge = document.getElementById(`diff-badge-${suffix}`);
-        if (badge) {
-            badge.className = `diff-badge ${cfg.badgeClass}`;
-            badge.innerText = cfg.badge;
-        }
-        const desc = document.getElementById(`diff-desc-${suffix}`);
-        if (desc) desc.innerText = cfg.desc;
-        document.querySelectorAll(`#diff-group-${suffix} .btn-diff`).forEach(b => {
-            b.classList.toggle('active', b.getAttribute('data-diff') === diffKey);
-        });
-    });
-
-    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MENU) {
-        const p2Label = document.getElementById('p2-label');
-        if (p2Label) {
-            p2Label.innerText = cfg.hudLabel;
-            p2Label.style.color = cfg.hudColor;
-        }
-        setAvatarThemeColor(slotAvatars[2], cfg.colorHex);
-    }
-}
-
-function syncSettingsDisplay() {
-    const bindSlider = (id, key, unit = '', decimals = 1) => {
-        const slider = document.getElementById(`slider-${id}`);
-        const valEl = document.getElementById(`val-${id}`);
-        if (slider && valEl && settings[key] !== undefined) {
-            slider.value = settings[key];
-            valEl.innerText = Number(settings[key]).toFixed(decimals) + unit;
-        }
-    };
-    bindSlider('matchTarget', 'matchTarget', ' 点', 0);
-    bindSlider('smashPower', 'smashPower', 'x', 1);
-    bindSlider('smashCd', 'smashCooldown', ' 秒', 1);
-    bindSlider('invuln', 'hitInvulnTime', ' 秒', 1);
-    bindSlider('knockback', 'knockbackPower', '', 1);
-    bindSlider('splitRally', 'splitRallyCount', ' 回', 0);
-    bindSlider('pushY', 'pushY', ' m/s', 1);
-    bindSlider('pushZ', 'pushZ', ' m/s', 1);
-    bindSlider('gravity', 'gravity', '', 1);
-    bindSlider('pushX', 'pushX', '', 1);
-    bindSlider('sens', 'sensitivity', 'x', 1);
-
-    setCpuDifficulty(settings.cpuDifficulty || 'normal');
-    updateLobbyRulesSummary();
-}
-
-function setupSliderListener(id, key, unit = '', decimals = 1) {
-    const el = document.getElementById(`slider-${id}`);
-    if (!el) return;
-    el.addEventListener('input', (e) => {
-        if (currentMode === GAME_MODE.MP_GUEST && key !== 'sensitivity') {
-            syncSettingsDisplay();
-            return;
-        }
-        settings[key] = parseFloat(e.target.value);
-        document.getElementById(`val-${id}`).innerText = settings[key].toFixed(decimals) + unit;
-        saveSettings();
-    });
-}
-setupSliderListener('matchTarget', 'matchTarget', ' 点', 0);
-setupSliderListener('smashPower', 'smashPower', 'x', 1);
-setupSliderListener('smashCd', 'smashCooldown', ' 秒', 1);
-setupSliderListener('invuln', 'hitInvulnTime', ' 秒', 1);
-setupSliderListener('knockback', 'knockbackPower', '', 1);
-setupSliderListener('splitRally', 'splitRallyCount', ' 回', 0);
-setupSliderListener('pushY', 'pushY', ' m/s', 1);
-setupSliderListener('pushZ', 'pushZ', ' m/s', 1);
-setupSliderListener('gravity', 'gravity', '', 1);
-setupSliderListener('pushX', 'pushX', '', 1);
-setupSliderListener('sens', 'sensitivity', 'x', 1);
-
-document.querySelectorAll('#diff-group-menu .btn-diff, #diff-group-settings .btn-diff').forEach(btn => {
-    btn.addEventListener('click', () => setCpuDifficulty(btn.getAttribute('data-diff')));
-});
-
-document.getElementById('btn-reset-physics').addEventListener('click', () => {
-    if (currentMode === GAME_MODE.MP_GUEST) return;
-    const savedName = settings.playerName;
-    settings = Object.assign({}, DEFAULT_SETTINGS, { playerName: savedName });
-    syncSettingsDisplay();
-    saveSettings();
-});
-
-document.getElementById('player-name-input').addEventListener('input', (e) => {
-    const newName = (e.target.value || 'Player').substring(0, 12);
-    settings.playerName = newName;
-    saveSettings();
-    if (currentMode === GAME_MODE.MP_HOST) {
-        for (let i = 0; i < 4; i++) {
-            if (lobbySlots[i] && lobbySlots[i].peerId === myPeerId) {
-                lobbySlots[i].name = newName;
-            }
-        }
-        broadcastLobbyState();
-    } else if (currentMode === GAME_MODE.MP_GUEST) {
-        sendNetEvent({ type: 'UPDATE_NAME', name: newName });
-    }
-});
-
-function togglePauseModal() {
-    const pauseEl = document.getElementById('pause-modal');
-    if (pauseEl.style.display === 'flex') {
-        pauseEl.style.display = 'none';
-        if (isPlaying) safeRequestPointerLock();
-    } else {
-        pauseEl.style.display = 'flex';
-        try { document.exitPointerLock(); } catch(e) {}
-    }
-}
-
-function openSettingsModal() {
-    document.getElementById('pause-modal').style.display = 'none';
-    document.getElementById('settings-modal').style.display = 'flex';
-    const isGuest = (currentMode === GAME_MODE.MP_GUEST);
-    document.getElementById('settings-sync-note').innerText = isGuest
-        ? "※ゲスト参加中は「マウス視点感度」のみ変更可能です（ルールはホストに準拠）"
-        : "※ホストが変更したルール・物理はロビー全員に自動同期されます";
-    try { document.exitPointerLock(); } catch(e) {}
-}
-
-function closeSettingsModal() {
-    document.getElementById('settings-modal').style.display = 'none';
-    if (isPlaying) safeRequestPointerLock();
-}
-
-function executeRematch(notifyPeer = true) {
-    scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
-    flashCharges = 1; smashCdTimer = 0;
-    updateScoreUI();
-    updateSkillHUD();
-    document.getElementById('gameover-modal').style.display = 'none';
-    document.getElementById('pause-modal').style.display = 'none';
-    isPlaying = true;
-    safeRequestPointerLock();
-
-    if (notifyPeer && (currentMode === GAME_MODE.MP_HOST || currentMode === GAME_MODE.MP_GUEST)) {
-        sendNetEvent({ type: 'REMATCH' });
-    }
-    if (currentMode === GAME_MODE.SOLO || currentMode === GAME_MODE.MP_HOST) {
-        setTimeout(() => { launchSafeServe(true); }, 1000);
-    }
-}
-
-function quitToMainMenu() {
-    if (window.location.search) {
-        window.location.href = window.location.pathname;
-    } else {
-        window.location.reload();
-    }
-}
-
-document.getElementById('btn-open-pause').addEventListener('click', togglePauseModal);
-document.getElementById('btn-resume').addEventListener('click', togglePauseModal);
-document.getElementById('btn-pause-rematch').addEventListener('click', () => executeRematch(true));
-document.getElementById('btn-pause-lobby').addEventListener('click', () => returnToLobby(true));
-document.getElementById('btn-pause-settings').addEventListener('click', openSettingsModal);
-document.getElementById('btn-pause-quit').addEventListener('click', quitToMainMenu);
-
-document.getElementById('btn-settings-menu').addEventListener('click', openSettingsModal);
-document.getElementById('btn-lobby-settings').addEventListener('click', openSettingsModal);
-document.getElementById('btn-close-settings').addEventListener('click', closeSettingsModal);
-
-document.getElementById('btn-lobby-leave').addEventListener('click', quitToMainMenu);
-document.getElementById('btn-lobby-start').addEventListener('click', () => {
-    if (currentMode !== GAME_MODE.MP_HOST) return;
-    sendNetEvent({
-        type: 'START_MATCH',
-        slots: lobbySlots,
-        rules: getRulesPayload()
-    });
-    startMultiplayerMatch();
-});
-
-// Start Solo Mode (Immediate & Reliable Execution)
-document.getElementById('btn-solo-play').addEventListener('click', (e) => {
-    e.stopPropagation();
+syncSettingsDisplay();
+const urlParams = new URLSearchParams(window.location.search);
+const roomParam = urlParams.get('room');
+if (roomParam) {
     audio.init();
-    currentMode = GAME_MODE.SOLO;
-    mySlot = 0;
-    myTeam = 1;
-    scoreP1 = 0; scoreP2 = 0; rallyCount = 0;
-    updateScoreUI();
-
-    for (let s = 0; s < 4; s++) {
-        slotAvatars[s].group.visible = (s === 2);
-    }
-    player.pos.set(0, 1.7, 8.0);
-    yaw = 0; pitch = 0;
-
-    document.getElementById('p1-label').innerText = "YOU (1P)";
-    setCpuDifficulty(settings.cpuDifficulty || 'normal');
-    document.getElementById('btn-pause-lobby').style.display = 'none';
-
-    document.getElementById('menu-modal').style.display = 'none';
-    document.getElementById('hud').style.display = 'block';
-    isPlaying = true;
-    safeRequestPointerLock();
-
-    setTimeout(() => { launchSafeServe(false); }, 1000);
-});
-
-document.getElementById('btn-host-create').addEventListener('click', (e) => {
-    e.stopPropagation();
-    audio.init();
-    initPeerAsHost();
-});
-
-document.getElementById('btn-copy-link').addEventListener('click', () => {
-    const input = document.getElementById('share-link-input');
-    input.select();
-    try { navigator.clipboard.writeText(input.value); } catch(e) {}
-    document.getElementById('btn-copy-link').innerText = "コピー済!";
-    setTimeout(() => { document.getElementById('btn-copy-link').innerText = "URLコピー"; }, 1500);
-});
-
-document.getElementById('btn-rematch').addEventListener('click', () => executeRematch(true));
-document.getElementById('btn-gameover-lobby').addEventListener('click', () => returnToLobby(true));
-document.getElementById('btn-back-menu').addEventListener('click', quitToMainMenu);
-
-// Immediate Initialization (Does not rely on DOMContentLoaded which might already have fired)
-function initializeApp() {
-    syncSettingsDisplay();
-    const params = new URLSearchParams(window.location.search);
-    const room = params.get('room');
-    if (room) {
-        audio.init();
-        initPeerAsGuest(room);
-    }
+    initPeerAsGuest(roomParam);
 }
-initializeApp();
 
 window.addEventListener('resize', () => {
     camera.aspect = window.innerWidth / window.innerHeight;
